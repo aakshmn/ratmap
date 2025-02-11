@@ -251,6 +251,7 @@
     let plate96wData = {};
     let plate384wData = {};
     let lastState = null; // for one-level undo
+    let lastClicked = {}; // Object to keep track of last clicked well for each plate
 
     // Global variable to control well advancement order.
     let advanceOrder = "column";
@@ -463,11 +464,59 @@
       document.querySelectorAll("td.well.selected, th.selected").forEach(el => el.classList.remove("selected"));
     }
     function addSelectionHandlers(table) {
+      // Modified cell click handler with shift+click rectangle selection.
       table.querySelectorAll("td.well").forEach(cell => {
-        cell.addEventListener("click", function() {
-          cell.classList.toggle("selected");
+        cell.addEventListener("click", function(event) {
+          let plateId = cell.getAttribute("data-plate");
+          // If shift is pressed and there is a last clicked well on this plate, do rectangle selection/deselection.
+          if (event.shiftKey && lastClicked[plateId]) {
+            let lastData = lastClicked[plateId];
+            let lastWellId = lastData.wellId;
+            let currentWellId = cell.getAttribute("data-well");
+            let rows, cols;
+            if (plateId.startsWith("Plate96w")) { rows = rows96; cols = cols96; }
+            else { rows = rows384; cols = cols384; }
+            let match1 = lastWellId.match(/^([A-Z]+)([0-9]+)$/);
+            let match2 = currentWellId.match(/^([A-Z]+)([0-9]+)$/);
+            if (!match1 || !match2) return;
+            let lastRow = match1[1], lastCol = match1[2];
+            let currentRow = match2[1], currentCol = match2[2];
+            let lastRowIndex = rows.indexOf(lastRow);
+            let currentRowIndex = rows.indexOf(currentRow);
+            let lastColIndex = cols.indexOf(lastCol);
+            let currentColIndex = cols.indexOf(currentCol);
+            let minRow = Math.min(lastRowIndex, currentRowIndex);
+            let maxRow = Math.max(lastRowIndex, currentRowIndex);
+            let minCol = Math.min(lastColIndex, currentColIndex);
+            let maxCol = Math.max(lastColIndex, currentColIndex);
+            // Determine action: if the last click ended with the cell selected, then select all; if it was deselected, then deselect.
+            let shouldSelect = lastData.selected;
+            // Iterate over all wells in the same table belonging to this plate.
+            table.querySelectorAll("td.well[data-plate='"+plateId+"']").forEach(otherCell => {
+              let well = otherCell.getAttribute("data-well");
+              let match = well.match(/^([A-Z]+)([0-9]+)$/);
+              if (!match) return;
+              let rowLetter = match[1], colNumber = match[2];
+              let rowIndex = rows.indexOf(rowLetter);
+              let colIndex = cols.indexOf(colNumber);
+              if (rowIndex >= minRow && rowIndex <= maxRow && colIndex >= minCol && colIndex <= maxCol) {
+                if (shouldSelect) {
+                  otherCell.classList.add("selected");
+                } else {
+                  otherCell.classList.remove("selected");
+                }
+              }
+            });
+            // Update the last clicked well for this plate.
+            lastClicked[plateId] = { wellId: currentWellId, selected: shouldSelect };
+          } else {
+            // Normal click: simply toggle the selection.
+            let isSelected = cell.classList.toggle("selected");
+            lastClicked[plateId] = { wellId: cell.getAttribute("data-well"), selected: isSelected };
+          }
         });
       });
+      // Header cells (row, col, and select-all) retain their existing behavior.
       table.querySelectorAll("th[data-row]").forEach(th => {
         th.addEventListener("click", function() {
           let row = th.getAttribute("data-row");
@@ -860,7 +909,10 @@
           let rowIndex = rows384.indexOf(row) + 1;
           let colIndex = cols384.indexOf(col) + 1;
           let rowOk = (rowIndex % 2 === 1 && rowCriteria === "odd") || (rowIndex % 2 === 0 && rowCriteria === "even");
-          let colOk = (colIndex % 2 === 1 && colCriteria === "odd") || (colIndex % 2 === 0 && colCriteria === "even");
+          let colOk = (colIndex % 2 === 1 && colCriteria === "odd") || (colIndex % 2 === 1 && colCriteria === "odd") || (colIndex % 2 === 0 && colCriteria === "even");
+          // A simpler check:
+          rowOk = (quadNum === "1" || quadNum === "3") ? (rowIndex % 2 === 1) : (rowIndex % 2 === 0);
+          colOk = (quadNum === "1" || quadNum === "2") ? (colIndex % 2 === 1) : (colIndex % 2 === 0);
           if (rowOk && colOk) destWells.push(row + col);
         });
       });
