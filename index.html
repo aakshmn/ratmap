@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RatMap v0.1</title>
+  <script>
+    // Disable right-click
+    document.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+    });
+    // Password protection: prompt for password and block access if not correct.
+    window.onload = function () {
+      let password;
+      while (password !== "RottenRat99!") {
+        password = prompt("Enter password:");
+        if (password === null) {
+          document.body.innerHTML = "<h1>Access Denied</h1>";
+          return;
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 0;
+    }
+    h2 {
+      margin: 0;
+    }
+    .subheader {
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    /* Global Controls Container: Two columns */
+    #globalControls {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    /* Left column: subdivided into three sub-sections */
+    #controlsLeft {
+      flex: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .controlSection {
+      border: 1px solid #ddd;
+      padding: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+    .controlSection label {
+      font-size: 0.9rem;
+    }
+    .controlSection select,
+    .controlSection input,
+    .controlSection button {
+      font-size: 0.9rem;
+      padding: 2px 4px;
+    }
+    /* Right column: Condensed Rat Cache */
+    #ratCache {
+      flex: 1;
+      border: 1px solid #ccc;
+      padding: 5px;
+      background-color: #f9f9f9;
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      align-items: center;
+      justify-content: center;
+    }
+    #ratCache .tagline {
+      margin: 0;
+      text-align: center;
+    }
+    #nestContainer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #nestContainer span {
+      font-weight: bold;
+    }
+    /* Plate Containers */
+    #plateContainers {
+      display: flex;
+      gap: 20px;
+    }
+    .plateSection {
+      flex: 1;
+      border: 1px solid #aaa;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    .plateHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .plateHeader h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .plateHeader button {
+      font-size: 0.9rem;
+      padding: 4px 8px;
+    }
+    .plateWrapper {
+      margin-bottom: 30px;
+    }
+    .plateWrapper h3 {
+      margin-bottom: 5px;
+      text-align: center;
+    }
+    .plateTable {
+      margin-bottom: 10px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .plateTable th, .plateTable td {
+      border: 1px solid #444;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      font-size: 0.7rem;
+      padding: 2px;
+    }
+    .plateTable th {
+      background-color: #eee;
+      cursor: pointer;
+      user-select: none;
+    }
+    .plateTable td {
+      background-color: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .selected {
+      background-color: #fffa90 !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>RatMap v0.1</h1>
+  <div class="subheader">
+    An opinionated plate mapping tool, for experimental metadata. Made by aakshmn, for filthy little lab rats. <span style="font-style: normal;">💩🐀</span>
+  </div>
+  
+  <!-- Global Controls: Two Columns -->
+  <div id="globalControls">
+    <!-- Left: Three compact sub-sections -->
+    <div id="controlsLeft">
+      <!-- 1. Metadata Layer Naming Section -->
+      <div class="controlSection" id="layerNamingSection">
+        <label for="renameLayerDropdown">Layer:</label>
+        <select id="renameLayerDropdown"></select>
+        <label for="renameLayerInput">Name:</label>
+        <input type="text" id="renameLayerInput" placeholder="Enter new name">
+        <button id="renameLayerButton">Rename Layer</button>
+      </div>
+      <!-- 2. Layer Value Assignment Section -->
+      <div class="controlSection" id="valueAssignmentSection">
+        <label for="metadataLayer">Layer:</label>
+        <select id="metadataLayer"></select>
+        <label for="metadataValue">Value:</label>
+        <input type="text" id="metadataValue" placeholder="Enter value">
+        <button id="assignButton">Assign Values</button>
+        <button id="clearButton">Clear Wells</button>
+        <button id="undoButton">Undo</button>
+      </div>
+      <!-- 3. Mapping to Quadrant Section -->
+      <div class="controlSection" id="mappingSection">
+        <label for="srcPlateSelect">Src Plate 96w:</label>
+        <select id="srcPlateSelect"></select>
+        <label for="destQuadSelect">Dest Quadrant 384w:</label>
+        <select id="destQuadSelect"></select>
+        <button id="mapButton">Map to Quadrant</button>
+      </div>
+    </div>
+    <!-- Right: Condensed Rat Cache -->
+    <div id="ratCache">
+      <p class="tagline">
+        <i>Hey you moldy cheese hoarder. We’re tracking your rancid memory stash </i>
+        <span style="font-style: normal;">🤢</span>
+        <i>—purge before your browser keels over!</i>
+      </p>
+      <div id="nestContainer">
+        <span id="nestGaugeText">Sewage:</span>
+        <span id="nestGaugeValue">0 KB</span>
+        <button id="clearAllButton">Purge 🤮</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Plate Containers -->
+  <div id="plateContainers">
+    <!-- 96-well Plates Section -->
+    <div class="plateSection" id="container96w">
+      <div class="plateHeader">
+        <h2>96-well Plates</h2>
+        <button id="export96Button">Export 🧀</button>
+      </div>
+      <div id="plate96wSelector">
+        <label><input type="checkbox" value="Plate96w_1" class="plate96wCheckbox"> Plate 1</label>
+        <label><input type="checkbox" value="Plate96w_2" class="plate96wCheckbox"> Plate 2</label>
+        <label><input type="checkbox" value="Plate96w_3" class="plate96wCheckbox"> Plate 3</label>
+        <label><input type="checkbox" value="Plate96w_4" class="plate96wCheckbox"> Plate 4</label>
+        <label><input type="checkbox" value="Plate96w_5" class="plate96wCheckbox"> Plate 5</label>
+        <label><input type="checkbox" value="Plate96w_6" class="plate96wCheckbox"> Plate 6</label>
+        <label><input type="checkbox" value="Plate96w_7" class="plate96wCheckbox"> Plate 7</label>
+        <label><input type="checkbox" value="Plate96w_8" class="plate96wCheckbox"> Plate 8</label>
+      </div>
+      <div id="plate96wContainer"></div>
+    </div>
+    <!-- 384-well Plates Section -->
+    <div class="plateSection" id="container384w">
+      <div class="plateHeader">
+        <h2>384-well Plates</h2>
+        <button id="export384Button">Export 🧀</button>
+      </div>
+      <div id="plate384wSelector">
+        <label><input type="checkbox" value="Plate384w_1" class="plate384wCheckbox"> Plate384w_1</label>
+        <label><input type="checkbox" value="Plate384w_2" class="plate384wCheckbox"> Plate384w_2</label>
+      </div>
+      <div id="plate384wContainer"></div>
+    </div>
+  </div>
+  
+  <script>
+    /***** Global Data & Layer Names *****/
+    let plate96wData = {};
+    let plate384wData = {};
+    let lastState = null; // for one-level undo
+
+    // Global variable to control well advancement order.
+    let advanceOrder = "column";
+
+    // Maintain an array of layer names.
+    let layerNames = ["Metadata_1", "Metadata_2", "Metadata_3", "Metadata_4", "Metadata_5", "Metadata_6", "Metadata_7", "Metadata_8", "Metadata_9"];
+
+    // Define rows and columns.
+    const rows96 = ['A','B','C','D','E','F','G','H'];
+    const cols96 = Array.from({length: 12}, (_, i) => String(i+1).padStart(2, '0'));
+    const rows384 = "ABCDEFGHIJKLMNOP".split('');
+    const cols384 = Array.from({length: 24}, (_, i) => String(i+1).padStart(2, '0'));
+
+    /***** Utility: Update Layer Dropdowns *****/
+    function updateLayerDropdowns() {
+      // Update the renameLayerDropdown and the metadataLayer dropdown.
+      const renameDropdown = document.getElementById("renameLayerDropdown");
+      const assignDropdown = document.getElementById("metadataLayer");
+      renameDropdown.innerHTML = "";
+      assignDropdown.innerHTML = "";
+      for (let i = 0; i < layerNames.length; i++) {
+        let optionText = (i+1) + ". " + layerNames[i];
+        let opt1 = document.createElement("option");
+        opt1.value = "metadata_" + (i+1);
+        opt1.textContent = optionText;
+        renameDropdown.appendChild(opt1);
+        let opt2 = document.createElement("option");
+        opt2.value = "metadata_" + (i+1);
+        opt2.textContent = optionText;
+        assignDropdown.appendChild(opt2);
+      }
+    }
+    updateLayerDropdowns();
+
+    /***** Undo Functions *****/
+    function saveUndoState() {
+      lastState = {
+        plate96wData: JSON.parse(JSON.stringify(plate96wData)),
+        plate384wData: JSON.parse(JSON.stringify(plate384wData))
+      };
+    }
+    function undoLastAction() {
+      if (!lastState) {
+        alert("Nothing to undo.");
+        return;
+      }
+      plate96wData = JSON.parse(JSON.stringify(lastState.plate96wData));
+      plate384wData = JSON.parse(JSON.stringify(lastState.plate384wData));
+      lastState = null;
+      updateAllDisplayedCells();
+      document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
+      updateRatCache();
+    }
+
+    /***** Initialization Functions for Plates *****/
+    function initPlate96(plateId) {
+      let data = {};
+      rows96.forEach(r => {
+        cols96.forEach(c => {
+          let wellId = r + c;
+          let wellData = {};
+          for (let i = 1; i <= 9; i++) {
+            wellData["metadata_" + i] = "";
+          }
+          data[wellId] = wellData;
+        });
+      });
+      plate96wData[plateId] = data;
+    }
+    function initPlate384(plateId) {
+      let data = {};
+      rows384.forEach(r => {
+        cols384.forEach(c => {
+          let wellId = r + c;
+          let wellData = {};
+          for (let i = 1; i <= 9; i++) {
+            wellData["metadata_" + i] = "";
+          }
+          wellData.Src_Plate_96w = "";
+          wellData.Src_Well_96w = "";
+          data[wellId] = wellData;
+        });
+      });
+      plate384wData[plateId] = data;
+    }
+
+    /***** Plate Table Generation *****/
+    function generate96PlateTable(plateId) {
+      let table = document.createElement("table");
+      table.className = "plateTable";
+      table.setAttribute("data-plate", plateId);
+      let thead = document.createElement("thead");
+      let headerRow = document.createElement("tr");
+      let topLeft = document.createElement("th");
+      topLeft.className = "select-all";
+      topLeft.textContent = "";
+      headerRow.appendChild(topLeft);
+      cols96.forEach(col => {
+        let th = document.createElement("th");
+        th.textContent = col;
+        th.setAttribute("data-col", col);
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      let tbody = document.createElement("tbody");
+      rows96.forEach(row => {
+        let tr = document.createElement("tr");
+        let th = document.createElement("th");
+        th.textContent = row;
+        th.setAttribute("data-row", row);
+        tr.appendChild(th);
+        cols96.forEach(col => {
+          let td = document.createElement("td");
+          let wellId = row + col;
+          td.className = "well";
+          td.setAttribute("data-well", wellId);
+          td.setAttribute("data-plate", plateId);
+          updateCellDisplay96(td, plateId, wellId);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+    function generate384PlateTable(plateId) {
+      let table = document.createElement("table");
+      table.className = "plateTable";
+      table.setAttribute("data-plate", plateId);
+      let thead = document.createElement("thead");
+      let headerRow = document.createElement("tr");
+      let topLeft = document.createElement("th");
+      topLeft.className = "select-all";
+      topLeft.textContent = "";
+      headerRow.appendChild(topLeft);
+      cols384.forEach(col => {
+        let th = document.createElement("th");
+        th.textContent = col;
+        th.setAttribute("data-col", col);
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      let tbody = document.createElement("tbody");
+      rows384.forEach(row => {
+        let tr = document.createElement("tr");
+        let th = document.createElement("th");
+        th.textContent = row;
+        th.setAttribute("data-row", row);
+        tr.appendChild(th);
+        cols384.forEach(col => {
+          let td = document.createElement("td");
+          let wellId = row + col;
+          td.className = "well";
+          td.setAttribute("data-well", wellId);
+          td.setAttribute("data-plate", plateId);
+          updateCellDisplay384(td, plateId, wellId);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+
+    /***** Display Update Functions *****/
+    function updateCellDisplay96(cell, plateId, wellId) {
+      let data = plate96wData[plateId][wellId];
+      let html = `<div class="well-id">${wellId}</div>`;
+      for (let i = 1; i <= 9; i++) {
+        let key = "metadata_" + i;
+        if (data[key]) {
+          html += `<div class="metadata">${i}: ${data[key]}</div>`;
+        }
+      }
+      cell.innerHTML = html;
+    }
+    function updateCellDisplay384(cell, plateId, wellId) {
+      let data = plate384wData[plateId][wellId];
+      let html = `<div class="well-id">${wellId}</div>`;
+      for (let i = 1; i <= 9; i++) {
+        let key = "metadata_" + i;
+        if (data[key]) {
+          html += `<div class="metadata">${i}: ${data[key]}</div>`;
+        }
+      }
+      if (data.Src_Plate_96w || data.Src_Well_96w) {
+        html += `<div class="metadata">Map: ${data.Src_Plate_96w} ${data.Src_Well_96w}</div>`;
+      }
+      cell.innerHTML = html;
+    }
+    function updateAllDisplayedCells() {
+      document.querySelectorAll("td.well").forEach(cell => {
+        let plateId = cell.getAttribute("data-plate");
+        let wellId = cell.getAttribute("data-well");
+        if (plateId.startsWith("Plate96w")) {
+          updateCellDisplay96(cell, plateId, wellId);
+        } else {
+          updateCellDisplay384(cell, plateId, wellId);
+        }
+      });
+    }
+
+    /***** Selection Handlers *****/
+    function clearHeaderSelections() {
+      document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
+    }
+    function clearAllSelections() {
+      document.querySelectorAll("td.well.selected, th.selected").forEach(el => el.classList.remove("selected"));
+    }
+    function addSelectionHandlers(table) {
+      table.querySelectorAll("td.well").forEach(cell => {
+        cell.addEventListener("click", function() {
+          cell.classList.toggle("selected");
+        });
+      });
+      table.querySelectorAll("th[data-row]").forEach(th => {
+        th.addEventListener("click", function() {
+          let row = th.getAttribute("data-row");
+          let cells = table.querySelectorAll(`td.well[data-well^="${row}"]`);
+          let allSelected = true;
+          cells.forEach(cell => { if (!cell.classList.contains("selected")) allSelected = false; });
+          cells.forEach(cell => { allSelected ? cell.classList.remove("selected") : cell.classList.add("selected"); });
+          th.classList.toggle("selected", !allSelected);
+        });
+      });
+      table.querySelectorAll("th[data-col]").forEach(th => {
+        th.addEventListener("click", function() {
+          let col = th.getAttribute("data-col");
+          let cells = table.querySelectorAll(`td.well[data-well$="${col}"]`);
+          let allSelected = true;
+          cells.forEach(cell => { if (!cell.classList.contains("selected")) allSelected = false; });
+          cells.forEach(cell => { allSelected ? cell.classList.remove("selected") : cell.classList.add("selected"); });
+          th.classList.toggle("selected", !allSelected);
+        });
+      });
+      table.querySelector("th.select-all").addEventListener("click", function() {
+        let cells = table.querySelectorAll("td.well");
+        let allSelected = true;
+        cells.forEach(cell => { if (!cell.classList.contains("selected")) allSelected = false; });
+        cells.forEach(cell => { allSelected ? cell.classList.remove("selected") : cell.classList.add("selected"); });
+        this.classList.toggle("selected", !allSelected);
+      });
+    }
+
+    /***** Utility Functions for CSV Export *****/
+    // This function now returns only the layer name without the leading number, dot, and space.
+    function headerTextForKey(key) {
+      let idx = parseInt(key.split("_")[1]) - 1;
+      return layerNames[idx];
+    }
+    function getVisiblePlate96Ids() {
+      let ids = [];
+      document.querySelectorAll(".plate96wCheckbox:checked").forEach(cb => { ids.push(cb.value); });
+      return ids;
+    }
+    function determineMetaColumns96() {
+      let metaIncluded = {};
+      for (let i = 1; i <= 9; i++) { metaIncluded["metadata_" + i] = false; }
+      getVisiblePlate96Ids().forEach(plateId => {
+        let plate = plate96wData[plateId];
+        if (plate) {
+          for (let well in plate) {
+            for (let i = 1; i <= 9; i++){
+              let key = "metadata_" + i;
+              if (plate[well][key] && plate[well][key].trim() !== "") {
+                metaIncluded[key] = true;
+              }
+            }
+          }
+        }
+      });
+      let included = [];
+      for (let i = 1; i <= 9; i++){
+        if (metaIncluded["metadata_" + i]) included.push("metadata_" + i);
+      }
+      return included;
+    }
+    function getVisiblePlate384Ids() {
+      let ids = [];
+      document.querySelectorAll(".plate384wCheckbox:checked").forEach(cb => { ids.push(cb.value); });
+      return ids;
+    }
+    function determineMetaColumns384() {
+      let metaIncluded = {};
+      for (let i = 1; i <= 9; i++) { metaIncluded["metadata_" + i] = false; }
+      getVisiblePlate384Ids().forEach(plateId => {
+        let plate = plate384wData[plateId];
+        if (plate) {
+          for (let well in plate) {
+            for (let i = 1; i <= 9; i++){
+              let key = "metadata_" + i;
+              if (plate[well][key] && plate[well][key].trim() !== "") {
+                metaIncluded[key] = true;
+              }
+            }
+          }
+        }
+      });
+      let included = [];
+      for (let i = 1; i <= 9; i++){
+        if (metaIncluded["metadata_" + i]) included.push("metadata_" + i);
+      }
+      return included;
+    }
+
+    /***** Helper Functions for Well Advancement *****/
+    function getNextWellId(plateId, currentWell) {
+      let wellOrder = [];
+      if (plateId.startsWith("Plate96w")) {
+        cols96.forEach(col => { rows96.forEach(row => { wellOrder.push(row + col); }); });
+      } else if (plateId.startsWith("Plate384w")) {
+        cols384.forEach(col => { rows384.forEach(row => { wellOrder.push(row + col); }); });
+      }
+      let index = wellOrder.indexOf(currentWell);
+      return (index !== -1 && index < wellOrder.length - 1) ? wellOrder[index + 1] : null;
+    }
+    function getNextWellIdRowMajor(plateId, currentWell) {
+      let wellOrder = [];
+      if (plateId.startsWith("Plate96w")) {
+        rows96.forEach(row => { cols96.forEach(col => { wellOrder.push(row + col); }); });
+      } else if (plateId.startsWith("Plate384w")) {
+        rows384.forEach(row => { cols384.forEach(col => { wellOrder.push(row + col); }); });
+      }
+      let index = wellOrder.indexOf(currentWell);
+      return (index !== -1 && index < wellOrder.length - 1) ? wellOrder[index + 1] : null;
+    }
+    function getPlateWellOrder(plateId, orderType) {
+      let order = [];
+      if (plateId.startsWith("Plate96w")) {
+        if (orderType === "row") { rows96.forEach(row => { cols96.forEach(col => { order.push(row + col); }); }); }
+        else { cols96.forEach(col => { rows96.forEach(row => { order.push(row + col); }); }); }
+      } else if (plateId.startsWith("Plate384w")) {
+        if (orderType === "row") { rows384.forEach(row => { cols384.forEach(col => { order.push(row + col); }); }); }
+        else { cols384.forEach(col => { rows384.forEach(row => { order.push(row + col); }); }); }
+      }
+      return order;
+    }
+
+    /***** The Rat Cache (Nest Gauge) *****/
+    function updateRatCache() {
+      let bytes = JSON.stringify({ plate96wData, plate384wData }).length;
+      let display;
+      if (bytes < 1024 * 1024) { display = (bytes / 1024).toFixed(2) + " KB"; }
+      else { display = (bytes / (1024 * 1024)).toFixed(2) + " MB"; }
+      document.getElementById("nestGaugeValue").textContent = display;
+      if (bytes > 200 * 1024 * 1024) {
+        alert("Squeak alert! You're stuffing too much in the nest! Trim down or risk a crash, you data-gobbling vermin!");
+      }
+    }
+
+    /***** Button Handlers *****/
+    // Rename Layer
+    document.getElementById("renameLayerButton").addEventListener("click", function() {
+      let dropdown = document.getElementById("renameLayerDropdown");
+      let key = dropdown.value;
+      let idx = parseInt(key.split("_")[1]) - 1;
+      let newName = document.getElementById("renameLayerInput").value.trim();
+      if (!newName) { alert("Please enter a new layer name."); return; }
+      if (!/^[A-Za-z0-9_-]+$/.test(newName)) {
+        alert("Invalid layer name. Only letters, numbers, underscores, and dashes are allowed.");
+        return;
+      }
+      layerNames[idx] = newName;
+      updateLayerDropdowns();
+      document.getElementById("renameLayerInput").select();
+    });
+    
+    // Assign Values (with CSL support and auto-advance)
+    document.getElementById("assignButton").addEventListener("click", function() {
+      let layer = document.getElementById("metadataLayer").value;
+      let rawValue = document.getElementById("metadataValue").value;
+      let value = rawValue.trim();
+      if (!value) { alert("Please enter a metadata value."); return; }
+      let isCSL = false;
+      if (value.includes(",") && !(value.startsWith('"') && value.endsWith('"'))) {
+        isCSL = true;
+      }
+      let selected = document.querySelectorAll("td.well.selected");
+      if (selected.length === 0) { alert("No wells selected. Please make a selection."); return; }
+      if (isCSL) {
+        let parsedList = value.split(",").map(s => s.trim()).filter(s => s !== "");
+        if (parsedList.length !== selected.length) {
+          alert("Error: Number of values in comma separated list (" + parsedList.length + 
+                ") does not match number of selected wells (" + selected.length + ").");
+          return;
+        }
+        let plateId = selected[0].getAttribute("data-plate");
+        for (let cell of selected) {
+          if (cell.getAttribute("data-plate") !== plateId) {
+            alert("Error: Comma separated assignment is only allowed on wells within a single plate.");
+            return;
+          }
+        }
+        let orderArray = getPlateWellOrder(plateId, advanceOrder);
+        let selectedArray = Array.from(selected);
+        selectedArray.sort((a, b) => {
+          let wellA = a.getAttribute("data-well");
+          let wellB = b.getAttribute("data-well");
+          return orderArray.indexOf(wellA) - orderArray.indexOf(wellB);
+        });
+        saveUndoState();
+        for (let i = 0; i < selectedArray.length; i++) {
+          let cell = selectedArray[i];
+          let wellId = cell.getAttribute("data-well");
+          if (plateId.startsWith("Plate96w")) {
+            plate96wData[plateId][wellId][layer] = parsedList[i];
+            updateCellDisplay96(cell, plateId, wellId);
+          } else {
+            plate384wData[plateId][wellId][layer] = parsedList[i];
+            updateCellDisplay384(cell, plateId, wellId);
+          }
+        }
+        if (selectedArray.length === 1) {
+          let currentWell = selectedArray[0].getAttribute("data-well");
+          let nextWell = (advanceOrder === "row") ? getNextWellIdRowMajor(plateId, currentWell) : getNextWellId(plateId, currentWell);
+          selectedArray[0].classList.remove("selected");
+          if (nextWell) {
+            let nextCell = document.querySelector(`td.well[data-plate="${plateId}"][data-well="${nextWell}"]`);
+            if (nextCell) nextCell.classList.add("selected");
+          } else { clearAllSelections(); }
+        } else { clearAllSelections(); }
+        document.getElementById("metadataValue").select();
+        advanceOrder = "column";
+        updateRatCache();
+        return;
+      }
+      let singleSelection = (selected.length === 1);
+      let currentPlate, currentWell, nextWell;
+      if (singleSelection) {
+        let cell = selected[0];
+        currentPlate = cell.getAttribute("data-plate");
+        currentWell = cell.getAttribute("data-well");
+        nextWell = (advanceOrder === "row") ? getNextWellIdRowMajor(currentPlate, currentWell) : getNextWellId(currentPlate, currentWell);
+      }
+      saveUndoState();
+      selected.forEach(cell => {
+        let plateId = cell.getAttribute("data-plate");
+        let wellId = cell.getAttribute("data-well");
+        if (plateId.startsWith("Plate96w")) {
+          plate96wData[plateId][wellId][layer] = value;
+          updateCellDisplay96(cell, plateId, wellId);
+        } else {
+          plate384wData[plateId][wellId][layer] = value;
+          updateCellDisplay384(cell, plateId, wellId);
+        }
+      });
+      if (singleSelection) {
+        document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
+        selected[0].classList.remove("selected");
+        if (nextWell) {
+          let nextCell = document.querySelector(`td.well[data-plate="${currentPlate}"][data-well="${nextWell}"]`);
+          if (nextCell) nextCell.classList.add("selected");
+        } else { clearAllSelections(); }
+      } else { clearAllSelections(); }
+      document.getElementById("metadataValue").select();
+      advanceOrder = "column";
+      updateRatCache();
+    });
+    
+    // Clear Wells
+    document.getElementById("clearButton").addEventListener("click", function() {
+      saveUndoState();
+      let selected = document.querySelectorAll("td.well.selected");
+      selected.forEach(cell => {
+        let plateId = cell.getAttribute("data-plate");
+        let wellId = cell.getAttribute("data-well");
+        if (plateId.startsWith("Plate96w")) {
+          let data = plate96wData[plateId][wellId];
+          for (let i = 1; i <= 9; i++) { data["metadata_" + i] = ""; }
+          updateCellDisplay96(cell, plateId, wellId);
+        } else {
+          let data = plate384wData[plateId][wellId];
+          for (let i = 1; i <= 9; i++) { data["metadata_" + i] = ""; }
+          data.Src_Plate_96w = "";
+          data.Src_Well_96w = "";
+          updateCellDisplay384(cell, plateId, wellId);
+        }
+      });
+      clearAllSelections();
+      updateRatCache();
+    });
+    
+    // Undo
+    document.getElementById("undoButton").addEventListener("click", function() {
+      undoLastAction();
+    });
+    
+    // Export for 96-well Plates with new "sample_id_96w" column
+    document.getElementById("export96Button").addEventListener("click", function() {
+      let metaCols = determineMetaColumns96();
+      let headerMeta = metaCols.map(key => headerTextForKey(key));
+      // Insert new column "sample_id_96w" at the beginning
+      let header = ["sample_id_96w", "Plate_96w", "Well_96w"].concat(headerMeta);
+      let csvContent = header.map(h => `"${h}"`).join(",") + "\n";
+      document.querySelectorAll(".plate96wCheckbox:checked").forEach(cb => {
+        let plateId = cb.value;
+        let data = plate96wData[plateId];
+        cols96.forEach(col => {
+          rows96.forEach(row => {
+            let wellId = row + col;
+            let d = data[wellId];
+            // sample_id_96w is a concatenation of plateId and wellId
+            let sampleId = plateId + "_" + wellId;
+            let rowArray = [sampleId, plateId, wellId];
+            metaCols.forEach(key => { rowArray.push(d[key]); });
+            csvContent += rowArray.map(item => `"${item}"`).join(",") + "\n";
+          });
+        });
+      });
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let url = URL.createObjectURL(blob);
+      let link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "plate96w_metadata.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    
+    // Export for 384-well Plates with new "sample_id_384w" and "sample_id_96w" columns
+    document.getElementById("export384Button").addEventListener("click", function() {
+      let metaCols = determineMetaColumns384();
+      let mappingUsed = false;
+      document.querySelectorAll(".plate384wCheckbox:checked").forEach(cb => {
+        let plateId = cb.value;
+        let data = plate384wData[plateId];
+        for (let well in data) {
+          let d = data[well];
+          if ((d.Src_Plate_96w && d.Src_Plate_96w.trim() !== "") || (d.Src_Well_96w && d.Src_Well_96w.trim() !== "")) {
+            mappingUsed = true;
+            break;
+          }
+        }
+      });
+      let headerMeta = metaCols.map(key => headerTextForKey(key));
+      let header;
+      if (mappingUsed) {
+        // Header order: sample_id_384w, Plate_384w, Well_384w, Plate_384w_Quad, sample_id_96w, Src_Plate_96w, Src_Well_96w, then metadata
+        header = ["sample_id_384w", "Plate_384w", "Well_384w", "Plate_384w_Quad", "sample_id_96w", "Src_Plate_96w", "Src_Well_96w"].concat(headerMeta);
+      } else {
+        header = ["sample_id_384w", "Plate_384w", "Well_384w", "Plate_384w_Quad"].concat(headerMeta);
+      }
+      let csvContent = header.map(h => `"${h}"`).join(",") + "\n";
+      document.querySelectorAll(".plate384wCheckbox:checked").forEach(cb => {
+        let plateId = cb.value;
+        let data = plate384wData[plateId];
+        cols384.forEach((col, colIndex) => {
+          rows384.forEach((row, rowIndex) => {
+            let wellId = row + col;
+            let rnum = rowIndex + 1, cnum = colIndex + 1;
+            let quadrant;
+            if (rnum % 2 === 1 && cnum % 2 === 1) quadrant = "Q1";
+            else if (rnum % 2 === 0 && cnum % 2 === 1) quadrant = "Q2";
+            else if (rnum % 2 === 1 && cnum % 2 === 0) quadrant = "Q3";
+            else quadrant = "Q4";
+            let fullQuad = plateId + "_" + quadrant;
+            let d = data[wellId];
+            // sample_id_384w is the concatenation of plateId and wellId
+            let sampleId384w = plateId + "_" + wellId;
+            let rowArray = [sampleId384w, plateId, wellId, fullQuad];
+            if (mappingUsed) {
+              // sample_id_96w is derived from Src_Plate_96w and Src_Well_96w
+              let sampleId96w = "";
+              if (d.Src_Plate_96w && d.Src_Well_96w) {
+                sampleId96w = d.Src_Plate_96w + "_" + d.Src_Well_96w;
+              }
+              rowArray.push(sampleId96w, d.Src_Plate_96w, d.Src_Well_96w);
+            }
+            metaCols.forEach(key => { rowArray.push(d[key]); });
+            csvContent += rowArray.map(item => `"${item}"`).join(",") + "\n";
+          });
+        });
+      });
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let url = URL.createObjectURL(blob);
+      let link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "plate384w_metadata.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    
+    // Mapping to Quadrant
+    document.getElementById("mapButton").addEventListener("click", function() {
+      let srcPlate = document.getElementById("srcPlateSelect").value;
+      let destQuadrant = document.getElementById("destQuadSelect").value;
+      if (!srcPlate || !destQuadrant) {
+        alert("Please select both a source 96-well plate and a destination quadrant.");
+        return;
+      }
+      saveUndoState();
+      let parts = destQuadrant.split("_Q");
+      let destPlate = parts[0];
+      let quadNum = parts[1];
+      let srcWells = [];
+      cols96.forEach(col => { rows96.forEach(row => { srcWells.push(row + col); }); });
+      let destWells = [];
+      let rowCriteria = (quadNum === "1" || quadNum === "3") ? "odd" : "even";
+      let colCriteria = (quadNum === "1" || quadNum === "2") ? "odd" : "even";
+      cols384.forEach(col => { 
+        rows384.forEach(row => {
+          let rowIndex = rows384.indexOf(row) + 1;
+          let colIndex = cols384.indexOf(col) + 1;
+          let rowOk = (rowIndex % 2 === 1 && rowCriteria === "odd") || (rowIndex % 2 === 0 && rowCriteria === "even");
+          let colOk = (colIndex % 2 === 1 && colCriteria === "odd") || (colIndex % 2 === 0 && colCriteria === "even");
+          if (rowOk && colOk) destWells.push(row + col);
+        });
+      });
+      destWells.sort((a, b) => {
+        let aRow = a.charAt(0), bRow = b.charAt(0);
+        let aCol = a.slice(1), bCol = b.slice(1);
+        if (aCol === bCol) return rows384.indexOf(aRow) - rows384.indexOf(bRow);
+        return parseInt(aCol) - parseInt(bCol);
+      });
+      if (srcWells.length !== 96 || destWells.length !== 96) {
+        alert("Unexpected error: number of wells mismatch.");
+        return;
+      }
+      let srcData = plate96wData[srcPlate];
+      let destData = plate384wData[destPlate];
+      for (let i = 0; i < 96; i++) {
+        let srcWell = srcWells[i];
+        let destWell = destWells[i];
+        destData[destWell] = {};
+        for (let j = 1; j <= 9; j++) { destData[destWell]["metadata_" + j] = ""; }
+        destData[destWell].Src_Plate_96w = "";
+        destData[destWell].Src_Well_96w = "";
+        for (let j = 1; j <= 9; j++) {
+          let key = "metadata_" + j;
+          if (srcData[srcWell][key]) { destData[destWell][key] = srcData[srcWell][key]; }
+        }
+        destData[destWell].Src_Plate_96w = srcPlate;
+        destData[destWell].Src_Well_96w = srcWell;
+        let srcCell = document.querySelector(`td.well[data-plate="${srcPlate}"][data-well="${srcWell}"]`);
+        if (srcCell) srcCell.classList.add("selected");
+        let destCell = document.querySelector(`td.well[data-plate="${destPlate}"][data-well="${destWell}"]`);
+        if (destCell) {
+          updateCellDisplay384(destCell, destPlate, destWell);
+          destCell.classList.add("selected");
+        }
+      }
+      document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
+      updateRatCache();
+    });
+    
+    /***** Checkbox Handlers for Showing/Hiding Plates *****/
+    document.querySelectorAll(".plate96wCheckbox").forEach(cb => {
+      cb.addEventListener("change", function() {
+        let plateId = cb.value;
+        let container = document.getElementById("plate96wContainer");
+        if (cb.checked) {
+          if (!plate96wData[plateId]) initPlate96(plateId);
+          let table = generate96PlateTable(plateId);
+          addSelectionHandlers(table);
+          let plateDiv = document.createElement("div");
+          plateDiv.className = "plateWrapper";
+          plateDiv.id = plateId;
+          let label = document.createElement("h3");
+          label.textContent = plateId;
+          plateDiv.appendChild(label);
+          plateDiv.appendChild(table);
+          container.appendChild(plateDiv);
+        } else {
+          let plateDiv = document.getElementById(plateId);
+          if (plateDiv) plateDiv.remove();
+        }
+        updateMappingDropdowns();
+      });
+    });
+    document.querySelectorAll(".plate384wCheckbox").forEach(cb => {
+      cb.addEventListener("change", function() {
+        let plateId = cb.value;
+        let container = document.getElementById("plate384wContainer");
+        if (cb.checked) {
+          if (!plate384wData[plateId]) initPlate384(plateId);
+          let table = generate384PlateTable(plateId);
+          addSelectionHandlers(table);
+          let plateDiv = document.createElement("div");
+          plateDiv.className = "plateWrapper";
+          plateDiv.id = plateId;
+          let label = document.createElement("h3");
+          label.textContent = plateId;
+          plateDiv.appendChild(label);
+          plateDiv.appendChild(table);
+          container.appendChild(plateDiv);
+        } else {
+          let plateDiv = document.getElementById(plateId);
+          if (plateDiv) plateDiv.remove();
+        }
+        updateMappingDropdowns();
+      });
+    });
+    function updateMappingDropdowns() {
+      let srcSelect = document.getElementById("srcPlateSelect");
+      srcSelect.innerHTML = "";
+      document.querySelectorAll(".plate96wCheckbox:checked").forEach(cb => {
+        let opt = document.createElement("option");
+        opt.value = cb.value;
+        opt.textContent = cb.value;
+        srcSelect.appendChild(opt);
+      });
+      let destSelect = document.getElementById("destQuadSelect");
+      destSelect.innerHTML = "";
+      document.querySelectorAll(".plate384wCheckbox:checked").forEach(cb => {
+        let plateId = cb.value;
+        for (let q = 1; q <= 4; q++) {
+          let opt = document.createElement("option");
+          opt.value = plateId + "_Q" + q;
+          opt.textContent = plateId + "_Q" + q;
+          destSelect.appendChild(opt);
+        }
+      });
+    }
+    
+    /***** Enter-Key Handler for Value Input *****/
+    document.getElementById("metadataValue").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        advanceOrder = event.shiftKey ? "row" : "column";
+        document.getElementById("assignButton").click();
+      }
+    });
+    
+    /***** Purge All Metadata & Reset Layer Names *****/
+    document.getElementById("clearAllButton").addEventListener("click", function() {
+      if (confirm("Are you sure you want to clear all metadata? This action cannot be undone.")) {
+        plate96wData = {};
+        plate384wData = {};
+        document.getElementById("plate96wContainer").innerHTML = "";
+        document.getElementById("plate384wContainer").innerHTML = "";
+        layerNames = ["Metadata_1", "Metadata_2", "Metadata_3", "Metadata_4", "Metadata_5", "Metadata_6", "Metadata_7", "Metadata_8", "Metadata_9"];
+        updateLayerDropdowns();
+        alert("All metadata has been cleared.");
+        updateRatCache();
+      }
+    });
+    
+    /***** The Rat Cache: Update Nest Gauge *****/
+    function updateRatCache() {
+      let bytes = JSON.stringify({ plate96wData, plate384wData }).length;
+      let display;
+      if (bytes < 1024 * 1024) { display = (bytes / 1024).toFixed(2) + " KB"; }
+      else { display = (bytes / (1024 * 1024)).toFixed(2) + " MB"; }
+      document.getElementById("nestGaugeValue").textContent = display;
+      if (bytes > 200 * 1024 * 1024) {
+        alert("Squeak alert! You're stuffing too much in the nest! Trim down or risk a crash, you data-gobbling vermin!");
+      }
+    }
+    
+    /***** Update the Nest Gauge periodically *****/
+    setInterval(updateRatCache, 5000);
+  </script>
+</body>
+</html>
