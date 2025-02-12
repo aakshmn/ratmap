@@ -108,6 +108,7 @@
       border: 1px solid #aaa;
       padding: 10px;
       overflow-x: auto;
+      position: relative;
     }
     .plateHeader {
       display: flex;
@@ -161,11 +162,9 @@
 <body>
   <h1>RatMap v0.1</h1>
   <div class="subheader">
-    An opinionated plate mapping tool, for experimental metadata. Made by 
-    <a href="https://github.com/aakshmn" target="_blank">aakshmn</a> for filthy little lab rats. 
-    <span style="font-style: normal;">💩🐀</span>
+    An opinionated plate mapping tool for filthy little lab rats. 
+    <span style="font-style: normal;">💩🐀 (by </span><a href="https://github.com/aakshmn" target="_blank">aakshmn</a><span style="font-style: normal;">)</span>
   </div>
-  
   <!-- Global Controls: Two Columns -->
   <div id="globalControls">
     <!-- Left: Three compact sub-sections -->
@@ -176,7 +175,7 @@
         <select id="renameLayerDropdown"></select>
         <label for="renameLayerInput">Name:</label>
         <input type="text" id="renameLayerInput" placeholder="Enter new name">
-        <button id="renameLayerButton">Rename Layer</button>
+        <button id="renameLayerButton">Rename</button>
       </div>
       <!-- 2. Layer Value Assignment Section -->
       <div class="controlSection" id="valueAssignmentSection">
@@ -184,15 +183,15 @@
         <select id="metadataLayer"></select>
         <label for="metadataValue">Value:</label>
         <input type="text" id="metadataValue" placeholder="Enter value">
-        <button id="assignButton">Assign Values</button>
-        <button id="clearButton">Clear Wells</button>
+        <button id="assignButton">Assign</button>
+        <button id="clearButton">Clear</button>
         <button id="undoButton">Undo</button>
       </div>
       <!-- 3. Mapping to Quadrant Section -->
       <div class="controlSection" id="mappingSection">
-        <label for="srcPlateSelect">Src Plate 96w:</label>
+        <label for="srcPlateSelect">Src 96w Plate:</label>
         <select id="srcPlateSelect"></select>
-        <label for="destQuadSelect">Dest Quadrant 384w:</label>
+        <label for="destQuadSelect">Dest 384w Quadrant:</label>
         <select id="destQuadSelect"></select>
         <button id="mapButton">Map to Quadrant</button>
       </div>
@@ -221,14 +220,14 @@
         <button id="export96Button">Export 🧀</button>
       </div>
       <div id="plate96wSelector">
-        <label><input type="checkbox" value="Plate96w_1" class="plate96wCheckbox"> Plate 1</label>
-        <label><input type="checkbox" value="Plate96w_2" class="plate96wCheckbox"> Plate 2</label>
-        <label><input type="checkbox" value="Plate96w_3" class="plate96wCheckbox"> Plate 3</label>
-        <label><input type="checkbox" value="Plate96w_4" class="plate96wCheckbox"> Plate 4</label>
-        <label><input type="checkbox" value="Plate96w_5" class="plate96wCheckbox"> Plate 5</label>
-        <label><input type="checkbox" value="Plate96w_6" class="plate96wCheckbox"> Plate 6</label>
-        <label><input type="checkbox" value="Plate96w_7" class="plate96wCheckbox"> Plate 7</label>
-        <label><input type="checkbox" value="Plate96w_8" class="plate96wCheckbox"> Plate 8</label>
+        <label><input type="checkbox" value="P01_96w" class="plate96wCheckbox"> P01_96w</label>
+        <label><input type="checkbox" value="P02_96w" class="plate96wCheckbox"> P02_96w</label>
+        <label><input type="checkbox" value="P03_96w" class="plate96wCheckbox"> P03_96w</label>
+        <label><input type="checkbox" value="P04_96w" class="plate96wCheckbox"> P04_96w</label>
+        <label><input type="checkbox" value="P05_96w" class="plate96wCheckbox"> P05_96w</label>
+        <label><input type="checkbox" value="P06_96w" class="plate96wCheckbox"> P06_96w</label>
+        <label><input type="checkbox" value="P07_96w" class="plate96wCheckbox"> P07_96w</label>
+        <label><input type="checkbox" value="P08_96w" class="plate96wCheckbox"> P08_96w</label>
       </div>
       <div id="plate96wContainer"></div>
     </div>
@@ -239,8 +238,8 @@
         <button id="export384Button">Export 🧀</button>
       </div>
       <div id="plate384wSelector">
-        <label><input type="checkbox" value="Plate384w_1" class="plate384wCheckbox"> Plate384w_1</label>
-        <label><input type="checkbox" value="Plate384w_2" class="plate384wCheckbox"> Plate384w_2</label>
+        <label><input type="checkbox" value="P01_384w" class="plate384wCheckbox"> P01_384w</label>
+        <label><input type="checkbox" value="P02_384w" class="plate384wCheckbox"> P02_384w</label>
       </div>
       <div id="plate384wContainer"></div>
     </div>
@@ -448,7 +447,7 @@
       document.querySelectorAll("td.well").forEach(cell => {
         let plateId = cell.getAttribute("data-plate");
         let wellId = cell.getAttribute("data-well");
-        if (plateId.startsWith("Plate96w")) {
+        if (plateId.includes("96w")) {
           updateCellDisplay96(cell, plateId, wellId);
         } else {
           updateCellDisplay384(cell, plateId, wellId);
@@ -474,7 +473,7 @@
             let lastWellId = lastData.wellId;
             let currentWellId = cell.getAttribute("data-well");
             let rows, cols;
-            if (plateId.startsWith("Plate96w")) { rows = rows96; cols = cols96; }
+            if (plateId.includes("96w")) { rows = rows96; cols = cols96; }
             else { rows = rows384; cols = cols384; }
             let match1 = lastWellId.match(/^([A-Z]+)([0-9]+)$/);
             let match2 = currentWellId.match(/^([A-Z]+)([0-9]+)$/);
@@ -610,9 +609,9 @@
     /***** Helper Functions for Well Advancement *****/
     function getNextWellId(plateId, currentWell) {
       let wellOrder = [];
-      if (plateId.startsWith("Plate96w")) {
+      if (plateId.includes("96w")) {
         cols96.forEach(col => { rows96.forEach(row => { wellOrder.push(row + col); }); });
-      } else if (plateId.startsWith("Plate384w")) {
+      } else if (plateId.includes("384w")) {
         cols384.forEach(col => { rows384.forEach(row => { wellOrder.push(row + col); }); });
       }
       let index = wellOrder.indexOf(currentWell);
@@ -620,9 +619,9 @@
     }
     function getNextWellIdRowMajor(plateId, currentWell) {
       let wellOrder = [];
-      if (plateId.startsWith("Plate96w")) {
+      if (plateId.includes("96w")) {
         rows96.forEach(row => { cols96.forEach(col => { wellOrder.push(row + col); }); });
-      } else if (plateId.startsWith("Plate384w")) {
+      } else if (plateId.includes("384w")) {
         rows384.forEach(row => { cols384.forEach(col => { wellOrder.push(row + col); }); });
       }
       let index = wellOrder.indexOf(currentWell);
@@ -630,10 +629,10 @@
     }
     function getPlateWellOrder(plateId, orderType) {
       let order = [];
-      if (plateId.startsWith("Plate96w")) {
+      if (plateId.includes("96w")) {
         if (orderType === "row") { rows96.forEach(row => { cols96.forEach(col => { order.push(row + col); }); }); }
         else { cols96.forEach(col => { rows96.forEach(row => { order.push(row + col); }); }); }
-      } else if (plateId.startsWith("Plate384w")) {
+      } else if (plateId.includes("384w")) {
         if (orderType === "row") { rows384.forEach(row => { cols384.forEach(col => { order.push(row + col); }); }); }
         else { cols384.forEach(col => { rows384.forEach(row => { order.push(row + col); }); }); }
       }
@@ -706,7 +705,7 @@
         for (let i = 0; i < selectedArray.length; i++) {
           let cell = selectedArray[i];
           let wellId = cell.getAttribute("data-well");
-          if (plateId.startsWith("Plate96w")) {
+          if (plateId.includes("96w")) {
             plate96wData[plateId][wellId][layer] = parsedList[i];
             updateCellDisplay96(cell, plateId, wellId);
           } else {
@@ -740,7 +739,7 @@
       selected.forEach(cell => {
         let plateId = cell.getAttribute("data-plate");
         let wellId = cell.getAttribute("data-well");
-        if (plateId.startsWith("Plate96w")) {
+        if (plateId.includes("96w")) {
           plate96wData[plateId][wellId][layer] = value;
           updateCellDisplay96(cell, plateId, wellId);
         } else {
@@ -768,7 +767,7 @@
       selected.forEach(cell => {
         let plateId = cell.getAttribute("data-plate");
         let wellId = cell.getAttribute("data-well");
-        if (plateId.startsWith("Plate96w")) {
+        if (plateId.includes("96w")) {
           let data = plate96wData[plateId][wellId];
           for (let i = 1; i <= 9; i++) { data["metadata_" + i] = ""; }
           updateCellDisplay96(cell, plateId, wellId);
@@ -902,17 +901,13 @@
       let srcWells = [];
       cols96.forEach(col => { rows96.forEach(row => { srcWells.push(row + col); }); });
       let destWells = [];
-      let rowCriteria = (quadNum === "1" || quadNum === "3") ? "odd" : "even";
-      let colCriteria = (quadNum === "1" || quadNum === "2") ? "odd" : "even";
+      // A simple criteria based on quadrant number.
       cols384.forEach(col => { 
         rows384.forEach(row => {
           let rowIndex = rows384.indexOf(row) + 1;
           let colIndex = cols384.indexOf(col) + 1;
-          let rowOk = (rowIndex % 2 === 1 && rowCriteria === "odd") || (rowIndex % 2 === 0 && rowCriteria === "even");
-          let colOk = (colIndex % 2 === 1 && colCriteria === "odd") || (colIndex % 2 === 1 && colCriteria === "odd") || (colIndex % 2 === 0 && colCriteria === "even");
-          // A simpler check:
-          rowOk = (quadNum === "1" || quadNum === "3") ? (rowIndex % 2 === 1) : (rowIndex % 2 === 0);
-          colOk = (quadNum === "1" || quadNum === "2") ? (colIndex % 2 === 1) : (colIndex % 2 === 0);
+          let rowOk = (quadNum === "1" || quadNum === "3") ? (rowIndex % 2 === 1) : (rowIndex % 2 === 0);
+          let colOk = (quadNum === "1" || quadNum === "2") ? (colIndex % 2 === 1) : (colIndex % 2 === 0);
           if (rowOk && colOk) destWells.push(row + col);
         });
       });
