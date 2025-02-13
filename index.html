@@ -163,7 +163,7 @@
   <h1>RatMap v0.1</h1>
   <div class="subheader">
     An opinionated plate mapping tool for filthy festering lab rats. 
-    <span style="font-style: normal;">💩🐀 (by </span><a href="https://github.com/aakshmn" target="_blank">aakshmn</a><span style="font-style: normal;">)</span>
+    <span style="font-style: normal;">💩🐀 (by </span><a href="README.md" target="_blank">SQUEAKME</a><span style="font-style: normal;">)</span>
   </div>
   <!-- Global Controls: Two Columns -->
   <div id="globalControls">
@@ -189,11 +189,11 @@
       </div>
       <!-- 3. Mapping to Quadrant Section -->
       <div class="controlSection" id="mappingSection">
-        <label for="srcPlateSelect">Src 96w Plate:</label>
+        <label for="srcPlateSelect">Source</label>
         <select id="srcPlateSelect"></select>
-        <label for="destQuadSelect">Dest 384w Quadrant:</label>
+        <label for="destQuadSelect">Destination:</label>
         <select id="destQuadSelect"></select>
-        <button id="mapButton">Map to Quadrant</button>
+        <button id="mapButton">Map Wells</button>
       </div>
     </div>
     <!-- Right: Condensed Rat Cache -->
@@ -886,8 +886,11 @@
       document.body.removeChild(link);
     });
     
-    // Mapping to Quadrant
+    // Mapping to Quadrant (now “Map Wells”)
     document.getElementById("mapButton").addEventListener("click", function() {
+      // First, deselect any currently selected cells.
+      clearAllSelections();
+      
       let srcPlate = document.getElementById("srcPlateSelect").value;
       let destQuadrant = document.getElementById("destQuadSelect").value;
       if (!srcPlate || !destQuadrant) {
@@ -1054,6 +1057,31 @@
     
     /***** Update the Nest Gauge periodically *****/
     setInterval(updateRatCache, 5000);
+
+    /***** Keyboard Shortcuts *****
+         Ctrl/⌘ + Shift + L : Focus & select the "Name:" input box.
+         Ctrl/⌘ + Shift + K : Focus & select the "Value:" input box.
+         Ctrl/⌘ + Shift + M : Focus the "Source" drop-down.
+    */
+    document.addEventListener("keydown", function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        let renameInput = document.getElementById("renameLayerInput");
+        renameInput.focus();
+        renameInput.select();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        let valueInput = document.getElementById("metadataValue");
+        valueInput.focus();
+        valueInput.select();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        let srcSelect = document.getElementById("srcPlateSelect");
+        srcSelect.focus();
+      }
+    });
   </script>
 </body>
 </html>
