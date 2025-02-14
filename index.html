@@ -163,7 +163,7 @@
   <h1>RatMap v0.1</h1>
   <div class="subheader">
     An opinionated plate mapping tool for filthy festering lab rats. 
-    <span style="font-style: normal;">💩🐀 (Created by: <a href="https://github.com/aakshmn" target="_blank">aakshmn</a><span style="font-style: normal;">, </span><a href="README.md" target="_blank">readme</a><span style="font-style: normal;">)</span>
+    <span style="font-style: normal;">💩🐀 Created by <a href="https://github.com/aakshmn" target="_blank">aakshmn</a><span style="font-style: normal;">. (</span><a href="https://github.com/aakshmn/ratmap/blob/main/README.md" target="_blank">README</a><span style="font-style: normal;">)</span>
   </div>
   <!-- Global Controls: Two Columns -->
   <div id="globalControls">
@@ -1059,27 +1059,94 @@
     setInterval(updateRatCache, 5000);
 
     /***** Keyboard Shortcuts *****
-         Ctrl/⌘ + Shift + L : Focus & select the "Name:" input box.
-         Ctrl/⌘ + Shift + K : Focus & select the "Value:" input box.
-         Ctrl/⌘ + Shift + M : Focus the "Source" drop-down.
+         Original:
+           Ctrl/⌘ + Shift + L : Focus & select the "Name:" input box.
+           Ctrl/⌘ + Shift + M : Focus & select the "Value:" input box.
+           Ctrl/⌘ + Shift + S : Focus the "Source" drop-down.
+         New:
+           Ctrl/⌘ + Shift + D : Focus the "Destination:" drop-down.
+           Ctrl/⌘ + Shift + O : Focus the "Export" button in the 96-well Plates Section.
+           Ctrl/⌘ + Shift + P : Focus the "Export" button in the 384-well Plates Section.
+         Plate toggling (when no input focus):
+           Windows: Ctrl + Alt + [number] toggles the checkbox.
+           Mac: Command + Option + [number] toggles the checkbox.
+           With Shift: (Windows: Ctrl + Alt + Shift + [number], Mac: Command + Option + Shift + [number]) simulates a click on the plate’s select-all header.
     */
     document.addEventListener("keydown", function(e) {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        let renameInput = document.getElementById("renameLayerInput");
-        renameInput.focus();
-        renameInput.select();
+      const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      
+      // --- Handle Plate Toggling Shortcuts (using numeric keys) ---
+      // Use e.code so that digits remain digits regardless of shift.
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.altKey) {
+        const plateMapping = {
+          "Digit1": "P01_96w",
+          "Digit2": "P02_96w",
+          "Digit3": "P03_96w",
+          "Digit4": "P04_96w",
+          "Digit5": "P05_96w",
+          "Digit6": "P06_96w",
+          "Digit7": "P07_96w",
+          "Digit8": "P08_96w",
+          "Digit9": "P01_384w",
+          "Digit0": "P02_384w"
+        };
+        if (e.code in plateMapping) {
+          let plateId = plateMapping[e.code];
+          if (e.shiftKey) {
+            // Toggle full selection (simulate header "select-all" click)
+            let table = document.querySelector('table.plateTable[data-plate="'+plateId+'"]');
+            if (table) {
+              let thSelectAll = table.querySelector('th.select-all');
+              if (thSelectAll) { thSelectAll.click(); }
+            }
+          } else {
+            // Toggle the checkbox state
+            let checkbox;
+            if (plateId.includes("96w")) {
+              checkbox = document.querySelector('input.plate96wCheckbox[value="'+plateId+'"]');
+            } else {
+              checkbox = document.querySelector('input.plate384wCheckbox[value="'+plateId+'"]');
+            }
+            if (checkbox) {
+              checkbox.checked = !checkbox.checked;
+              checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+          e.preventDefault();
+          return;
+        }
       }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        let valueInput = document.getElementById("metadataValue");
-        valueInput.focus();
-        valueInput.select();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
-        e.preventDefault();
-        let srcSelect = document.getElementById("srcPlateSelect");
-        srcSelect.focus();
+      
+      // --- Handle Other Ctrl/⌘ + Shift Shortcuts (without Alt) ---
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.shiftKey && !e.altKey) {
+        let key = e.key.toLowerCase();
+        if (key === 'l') {
+          e.preventDefault();
+          let renameInput = document.getElementById("renameLayerInput");
+          renameInput.focus();
+          renameInput.select();
+        } else if (key === 'm') {
+          e.preventDefault();
+          let valueInput = document.getElementById("metadataValue");
+          valueInput.focus();
+          valueInput.select();
+        } else if (key === 's') {
+          e.preventDefault();
+          let srcSelect = document.getElementById("srcPlateSelect");
+          srcSelect.focus();
+        } else if (key === 'd') {
+          e.preventDefault();
+          let destSelect = document.getElementById("destQuadSelect");
+          destSelect.focus();
+        } else if (key === 'o') {
+          e.preventDefault();
+          let export96 = document.getElementById("export96Button");
+          export96.focus();
+        } else if (key === 'p') {
+          e.preventDefault();
+          let export384 = document.getElementById("export384Button");
+          export384.focus();
+        }
       }
     });
   </script>
