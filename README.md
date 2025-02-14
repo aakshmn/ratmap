@@ -1,5 +1,5 @@
 # RatMap v0.1  
-*An opinionated plate mapping tool for filthy festering lab rats. 💩🐀*  
+*An opinionated plate mapping tool for filthy festering lab rats.* 💩🐀  
 
 ---
 
@@ -31,8 +31,7 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 
 ### Requirements
 - **Modern Web Browser:** RatMap runs best on modern browsers that comfortably handle up to 200MB of data.
-- **Password Protection:** When the app loads, you'll be prompted for a password. Enter:  
-  `Squeak!`
+- **Password Protection:** When the app loads, you'll be prompted for a password. Enter it, you rancid rodent.
 
 ### General Setup
 - **Select Your Plates:**  
