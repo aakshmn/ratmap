@@ -11,7 +11,7 @@
     // Password protection: prompt for password and block access if not correct.
     window.onload = function () {
       let password;
-      while (password !== "Squeak!") {
+      while (password !== "whiskers") {
         password = prompt("Enter password:");
         if (password === null) {
           document.body.innerHTML = "<h1>Access Denied</h1>";
@@ -38,67 +38,21 @@
       margin-bottom: 20px;
       font-size: 0.9rem;
     }
-    /* Global Controls Container: Two columns */
+    /* Global Controls: now two full–width rows */
     #globalControls {
       display: flex;
-      gap: 20px;
-      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 20px;
       border: 1px solid #ccc;
       padding: 10px;
     }
-    /* Left column: subdivided into three sub-sections */
-    #controlsLeft {
-      flex: 3;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .controlSection {
-      border: 1px solid #ddd;
-      padding: 5px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      align-items: center;
-    }
-    .controlSection label {
-      font-size: 0.9rem;
-    }
-    .controlSection select,
-    .controlSection input,
-    .controlSection button {
-      font-size: 0.9rem;
-      padding: 2px 4px;
-    }
-    /* Right column: Condensed Rat Cache */
-    #ratCache {
-      flex: 1;
-      border: 1px solid #ccc;
-      padding: 5px;
-      background-color: #f9f9f9;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      align-items: center;
-      justify-content: center;
-    }
-    #ratCache .tagline {
-      margin: 0;
-      text-align: center;
-    }
-    #nestContainer {
+    #metadataSection, #mappingSection {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
     }
-    #nestContainer span {
-      font-weight: bold;
-    }
-    /* Plate Containers */
+    /* Keep the plate container styles */
     #plateContainers {
       display: flex;
       gap: 20px;
@@ -165,49 +119,27 @@
     An opinionated plate mapping tool for filthy festering lab rats. 
     <span style="font-style: normal;">💩🐀 Created by <a href="https://github.com/aakshmn" target="_blank">aakshmn</a><span style="font-style: normal;">. (</span><a href="https://github.com/aakshmn/ratmap/blob/main/README.md" target="_blank">README</a><span style="font-style: normal;">)</span>
   </div>
-  <!-- Global Controls: Two Columns -->
+  
+  <!-- Global Controls: Two Rows -->
   <div id="globalControls">
-    <!-- Left: Three compact sub-sections -->
-    <div id="controlsLeft">
-      <!-- 1. Metadata Layer Naming Section -->
-      <div class="controlSection" id="layerNamingSection">
-        <label for="renameLayerDropdown">Layer:</label>
-        <select id="renameLayerDropdown"></select>
-        <label for="renameLayerInput">Name:</label>
-        <input type="text" id="renameLayerInput" placeholder="Enter new name">
-        <button id="renameLayerButton">Rename</button>
-      </div>
-      <!-- 2. Layer Value Assignment Section -->
-      <div class="controlSection" id="valueAssignmentSection">
-        <label for="metadataLayer">Layer:</label>
-        <select id="metadataLayer"></select>
-        <label for="metadataValue">Value:</label>
-        <input type="text" id="metadataValue" placeholder="Enter value">
-        <button id="assignButton">Assign</button>
-        <button id="clearButton">Clear</button>
-        <button id="undoButton">Undo</button>
-      </div>
-      <!-- 3. Mapping to Quadrant Section -->
-      <div class="controlSection" id="mappingSection">
-        <label for="srcPlateSelect">Source</label>
-        <select id="srcPlateSelect"></select>
-        <label for="destQuadSelect">Destination:</label>
-        <select id="destQuadSelect"></select>
-        <button id="mapButton">Map Wells</button>
-      </div>
+    <!-- Top Row: Metadata Controls -->
+    <div id="metadataSection">
+      <select id="layerDropdown"></select>
+      <button id="renameLayerButton">Rename</button>
+      <input type="text" id="metadataValue" placeholder="Enter value">
+      <button id="assignButton">Assign</button>
+      <button id="clearButton">Clear</button>
     </div>
-    <!-- Right: Condensed Rat Cache -->
-    <div id="ratCache">
-      <p class="tagline">
-        <i>Hey you stinky little cheese hoarder. We’re tracking your rancid memory stash </i>
-        <span style="font-style: normal;">🤢</span>
-        <i>—purge before your browser keels over!</i>
-      </p>
-      <div id="nestContainer">
-        <span id="nestGaugeText">Sewage:</span>
-        <span id="nestGaugeValue">0 KB</span>
-        <button id="clearAllButton">Purge 🤮</button>
-      </div>
+    <!-- Bottom Row: Mapping & Undo/Reset -->
+    <div id="mappingSection">
+      <span>Source</span>
+      <select id="srcPlateSelect"></select>
+      <span>Destination</span>
+      <select id="destQuadSelect"></select>
+      <button id="mapButton">Map Wells</button>
+      <button id="undoButton">Undo</button>
+      <button id="clearAllButton">Reset All 🤢</button>
+      <span id="memoryUsage">(0 KB)</span>
     </div>
   </div>
   
@@ -264,23 +196,16 @@
     const rows384 = "ABCDEFGHIJKLMNOP".split('');
     const cols384 = Array.from({length: 24}, (_, i) => String(i+1).padStart(2, '0'));
 
-    /***** Utility: Update Layer Dropdowns *****/
+    /***** Utility: Update Layer Dropdown *****/
     function updateLayerDropdowns() {
-      // Update the renameLayerDropdown and the metadataLayer dropdown.
-      const renameDropdown = document.getElementById("renameLayerDropdown");
-      const assignDropdown = document.getElementById("metadataLayer");
-      renameDropdown.innerHTML = "";
-      assignDropdown.innerHTML = "";
+      const dropdown = document.getElementById("layerDropdown");
+      dropdown.innerHTML = "";
       for (let i = 0; i < layerNames.length; i++) {
         let optionText = (i+1) + ". " + layerNames[i];
-        let opt1 = document.createElement("option");
-        opt1.value = "metadata_" + (i+1);
-        opt1.textContent = optionText;
-        renameDropdown.appendChild(opt1);
-        let opt2 = document.createElement("option");
-        opt2.value = "metadata_" + (i+1);
-        opt2.textContent = optionText;
-        assignDropdown.appendChild(opt2);
+        let opt = document.createElement("option");
+        opt.value = "metadata_" + (i+1);
+        opt.textContent = optionText;
+        dropdown.appendChild(opt);
       }
     }
     updateLayerDropdowns();
@@ -467,7 +392,6 @@
       table.querySelectorAll("td.well").forEach(cell => {
         cell.addEventListener("click", function(event) {
           let plateId = cell.getAttribute("data-plate");
-          // If shift is pressed and there is a last clicked well on this plate, do rectangle selection/deselection.
           if (event.shiftKey && lastClicked[plateId]) {
             let lastData = lastClicked[plateId];
             let lastWellId = lastData.wellId;
@@ -488,9 +412,7 @@
             let maxRow = Math.max(lastRowIndex, currentRowIndex);
             let minCol = Math.min(lastColIndex, currentColIndex);
             let maxCol = Math.max(lastColIndex, currentColIndex);
-            // Determine action: if the last click ended with the cell selected, then select all; if it was deselected, then deselect.
             let shouldSelect = lastData.selected;
-            // Iterate over all wells in the same table belonging to this plate.
             table.querySelectorAll("td.well[data-plate='"+plateId+"']").forEach(otherCell => {
               let well = otherCell.getAttribute("data-well");
               let match = well.match(/^([A-Z]+)([0-9]+)$/);
@@ -506,16 +428,13 @@
                 }
               }
             });
-            // Update the last clicked well for this plate.
             lastClicked[plateId] = { wellId: currentWellId, selected: shouldSelect };
           } else {
-            // Normal click: simply toggle the selection.
             let isSelected = cell.classList.toggle("selected");
             lastClicked[plateId] = { wellId: cell.getAttribute("data-well"), selected: isSelected };
           }
         });
       });
-      // Header cells (row, col, and select-all) retain their existing behavior.
       table.querySelectorAll("th[data-row]").forEach(th => {
         th.addEventListener("click", function() {
           let row = th.getAttribute("data-row");
@@ -546,7 +465,6 @@
     }
 
     /***** Utility Functions for CSV Export *****/
-    // This function now returns only the layer name without the leading number, dot, and space.
     function headerTextForKey(key) {
       let idx = parseInt(key.split("_")[1]) - 1;
       return layerNames[idx];
@@ -639,25 +557,27 @@
       return order;
     }
 
-    /***** The Rat Cache (Nest Gauge) *****/
+    /***** The Memory Usage (formerly Rat Cache) *****/
     function updateRatCache() {
       let bytes = JSON.stringify({ plate96wData, plate384wData }).length;
       let display;
       if (bytes < 1024 * 1024) { display = (bytes / 1024).toFixed(2) + " KB"; }
       else { display = (bytes / (1024 * 1024)).toFixed(2) + " MB"; }
-      document.getElementById("nestGaugeValue").textContent = display;
+      document.getElementById("memoryUsage").textContent = "(" + display + ")";
       if (bytes > 200 * 1024 * 1024) {
         alert("Squeak alert! You're stuffing too much in the nest! Trim down or risk a crash, you data-gobbling vermin!");
       }
     }
+    
+    setInterval(updateRatCache, 5000);
 
     /***** Button Handlers *****/
-    // Rename Layer
-    document.getElementById("renameLayerButton").addEventListener("click", function() {
-      let dropdown = document.getElementById("renameLayerDropdown");
+    // Layer Rename (now uses the same dropdown & input)
+    function performLayerRename() {
+      let dropdown = document.getElementById("layerDropdown");
       let key = dropdown.value;
       let idx = parseInt(key.split("_")[1]) - 1;
-      let newName = document.getElementById("renameLayerInput").value.trim();
+      let newName = document.getElementById("metadataValue").value.trim();
       if (!newName) { alert("Please enter a new layer name."); return; }
       if (!/^[A-Za-z0-9_-]+$/.test(newName)) {
         alert("Invalid layer name. Only letters, numbers, underscores, and dashes are allowed.");
@@ -665,32 +585,43 @@
       }
       layerNames[idx] = newName;
       updateLayerDropdowns();
-      document.getElementById("renameLayerInput").select();
+      dropdown.value = key; // Keep the renamed layer selected.
+      document.getElementById("metadataValue").select();
+    }
+    document.getElementById("renameLayerButton").addEventListener("click", function() {
+      performLayerRename();
     });
     
-    // Assign Values (with CSL support and auto-advance)
+    // Assign Values (with updated whitespace/comma–separated support and auto–advance)
     document.getElementById("assignButton").addEventListener("click", function() {
-      let layer = document.getElementById("metadataLayer").value;
+      let layer = document.getElementById("layerDropdown").value;
       let rawValue = document.getElementById("metadataValue").value;
-      let value = rawValue.trim();
-      if (!value) { alert("Please enter a metadata value."); return; }
-      let isCSL = false;
-      if (value.includes(",") && !(value.startsWith('"') && value.endsWith('"'))) {
-        isCSL = true;
+      let isQuoted = rawValue.startsWith('"') && rawValue.endsWith('"') && rawValue.length >= 2;
+      let value;
+      if (isQuoted) {
+        value = rawValue.substring(1, rawValue.length - 1);
+      } else {
+        value = rawValue.trim();
       }
+      if (!value) { alert("Please enter a metadata value."); return; }
       let selected = document.querySelectorAll("td.well.selected");
       if (selected.length === 0) { alert("No wells selected. Please make a selection."); return; }
-      if (isCSL) {
-        let parsedList = value.split(",").map(s => s.trim()).filter(s => s !== "");
+      let parsedList;
+      if (!isQuoted) {
+        parsedList = value.split(/[,\s]+/).filter(s => s !== "");
+      } else {
+        parsedList = [value];
+      }
+      if (parsedList.length > 1) {
         if (parsedList.length !== selected.length) {
-          alert("Error: Number of values in comma separated list (" + parsedList.length + 
+          alert("Error: Number of values in list (" + parsedList.length +
                 ") does not match number of selected wells (" + selected.length + ").");
           return;
         }
         let plateId = selected[0].getAttribute("data-plate");
         for (let cell of selected) {
           if (cell.getAttribute("data-plate") !== plateId) {
-            alert("Error: Comma separated assignment is only allowed on wells within a single plate.");
+            alert("Error: List assignment is only allowed on wells within a single plate.");
             return;
           }
         }
@@ -792,7 +723,6 @@
     document.getElementById("export96Button").addEventListener("click", function() {
       let metaCols = determineMetaColumns96();
       let headerMeta = metaCols.map(key => headerTextForKey(key));
-      // Insert new column "sample_id_96w" at the beginning
       let header = ["sample_id_96w", "Plate_96w", "Well_96w"].concat(headerMeta);
       let csvContent = header.map(h => `"${h}"`).join(",") + "\n";
       document.querySelectorAll(".plate96wCheckbox:checked").forEach(cb => {
@@ -802,7 +732,6 @@
           rows96.forEach(row => {
             let wellId = row + col;
             let d = data[wellId];
-            // sample_id_96w is a concatenation of plateId and wellId
             let sampleId = plateId + "_" + wellId;
             let rowArray = [sampleId, plateId, wellId];
             metaCols.forEach(key => { rowArray.push(d[key]); });
@@ -839,7 +768,6 @@
       let headerMeta = metaCols.map(key => headerTextForKey(key));
       let header;
       if (mappingUsed) {
-        // Header order: sample_id_384w, Plate_384w, Well_384w, Plate_384w_Quad, sample_id_96w, Src_Plate_96w, Src_Well_96w, then metadata
         header = ["sample_id_384w", "Plate_384w", "Well_384w", "Plate_384w_Quad", "sample_id_96w", "Src_Plate_96w", "Src_Well_96w"].concat(headerMeta);
       } else {
         header = ["sample_id_384w", "Plate_384w", "Well_384w", "Plate_384w_Quad"].concat(headerMeta);
@@ -859,11 +787,9 @@
             else quadrant = "Q4";
             let fullQuad = plateId + "_" + quadrant;
             let d = data[wellId];
-            // sample_id_384w is the concatenation of plateId and wellId
             let sampleId384w = plateId + "_" + wellId;
             let rowArray = [sampleId384w, plateId, wellId, fullQuad];
             if (mappingUsed) {
-              // sample_id_96w is derived from Src_Plate_96w and Src_Well_96w
               let sampleId96w = "";
               if (d.Src_Plate_96w && d.Src_Well_96w) {
                 sampleId96w = d.Src_Plate_96w + "_" + d.Src_Well_96w;
@@ -886,11 +812,9 @@
       document.body.removeChild(link);
     });
     
-    // Mapping to Quadrant (now “Map Wells”)
+    // Mapping to Quadrant (Map Wells)
     document.getElementById("mapButton").addEventListener("click", function() {
-      // First, deselect any currently selected cells.
       clearAllSelections();
-      
       let srcPlate = document.getElementById("srcPlateSelect").value;
       let destQuadrant = document.getElementById("destQuadSelect").value;
       if (!srcPlate || !destQuadrant) {
@@ -904,7 +828,6 @@
       let srcWells = [];
       cols96.forEach(col => { rows96.forEach(row => { srcWells.push(row + col); }); });
       let destWells = [];
-      // A simple criteria based on quadrant number.
       cols384.forEach(col => { 
         rows384.forEach(row => {
           let rowIndex = rows384.indexOf(row) + 1;
@@ -1020,18 +943,23 @@
       });
     }
     
-    /***** Enter-Key Handler for Value Input *****/
+    /***** Enter-Key Handler for Metadata Value Input *****/
     document.getElementById("metadataValue").addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        advanceOrder = event.shiftKey ? "row" : "column";
-        document.getElementById("assignButton").click();
+        if (event.shiftKey && event.altKey) {
+          // Shift+Alt+Enter (or Shift+Option+Enter on Mac) performs layer rename.
+          performLayerRename();
+        } else {
+          advanceOrder = event.shiftKey ? "row" : "column";
+          document.getElementById("assignButton").click();
+        }
       }
     });
     
-    /***** Purge All Metadata & Reset Layer Names *****/
+    /***** Reset All Metadata & Layer Names *****/
     document.getElementById("clearAllButton").addEventListener("click", function() {
-      if (confirm("Are you sure you want to clear all metadata? This action cannot be undone.")) {
+      if (confirm("Hey you stinky little cheese hoarder. Purge your rancid memory stash before your browser keels over! 🤮 Click \"OK\" to clear all metadata. This action cannot be undone.")) {
         plate96wData = {};
         plate384wData = {};
         document.getElementById("plate96wContainer").innerHTML = "";
@@ -1043,40 +971,16 @@
       }
     });
     
-    /***** The Rat Cache: Update Nest Gauge *****/
-    function updateRatCache() {
-      let bytes = JSON.stringify({ plate96wData, plate384wData }).length;
-      let display;
-      if (bytes < 1024 * 1024) { display = (bytes / 1024).toFixed(2) + " KB"; }
-      else { display = (bytes / (1024 * 1024)).toFixed(2) + " MB"; }
-      document.getElementById("nestGaugeValue").textContent = display;
-      if (bytes > 200 * 1024 * 1024) {
-        alert("Squeak alert! You're stuffing too much in the nest! Trim down or risk a crash, you data-gobbling vermin!");
-      }
-    }
-    
-    /***** Update the Nest Gauge periodically *****/
-    setInterval(updateRatCache, 5000);
-
     /***** Keyboard Shortcuts *****
-         Original:
-           Ctrl/⌘ + Shift + L : Focus & select the "Name:" input box.
-           Ctrl/⌘ + Shift + M : Focus & select the "Value:" input box.
-           Ctrl/⌘ + Shift + S : Focus the "Source" drop-down.
-         New:
-           Ctrl/⌘ + Shift + D : Focus the "Destination:" drop-down.
-           Ctrl/⌘ + Shift + O : Focus the "Export" button in the 96-well Plates Section.
-           Ctrl/⌘ + Shift + P : Focus the "Export" button in the 384-well Plates Section.
-         Plate toggling (when no input focus):
-           Windows: Ctrl + Alt + [number] toggles the checkbox.
-           Mac: Command + Option + [number] toggles the checkbox.
-           With Shift: (Windows: Ctrl + Alt + Shift + [number], Mac: Command + Option + Shift + [number]) simulates a click on the plate’s select-all header.
+         - Ctrl/⌘ + Shift + L or M : Focus & select the metadata value input.
+         - Ctrl/⌘ + Shift + S : Focus the Source drop-down.
+         - Ctrl/⌘ + Shift + D : Focus the Destination drop-down.
+         - Ctrl/⌘ + Shift + O : Focus the Export button in the 96-well Plates Section.
+         - Ctrl/⌘ + Shift + P : Focus the Export button in the 384-well Plates Section.
+         - Plate toggling shortcuts remain unchanged.
     */
     document.addEventListener("keydown", function(e) {
       const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-      
-      // --- Handle Plate Toggling Shortcuts (using numeric keys) ---
-      // Use e.code so that digits remain digits regardless of shift.
       if ((isMac ? e.metaKey : e.ctrlKey) && e.altKey) {
         const plateMapping = {
           "Digit1": "P01_96w",
@@ -1093,14 +997,12 @@
         if (e.code in plateMapping) {
           let plateId = plateMapping[e.code];
           if (e.shiftKey) {
-            // Toggle full selection (simulate header "select-all" click)
             let table = document.querySelector('table.plateTable[data-plate="'+plateId+'"]');
             if (table) {
               let thSelectAll = table.querySelector('th.select-all');
               if (thSelectAll) { thSelectAll.click(); }
             }
           } else {
-            // Toggle the checkbox state
             let checkbox;
             if (plateId.includes("96w")) {
               checkbox = document.querySelector('input.plate96wCheckbox[value="'+plateId+'"]');
@@ -1117,19 +1019,13 @@
         }
       }
       
-      // --- Handle Other Ctrl/⌘ + Shift Shortcuts (without Alt) ---
       if ((isMac ? e.metaKey : e.ctrlKey) && e.shiftKey && !e.altKey) {
         let key = e.key.toLowerCase();
-        if (key === 'l') {
+        if (key === 'l' || key === 'm') {
           e.preventDefault();
-          let renameInput = document.getElementById("renameLayerInput");
-          renameInput.focus();
-          renameInput.select();
-        } else if (key === 'm') {
-          e.preventDefault();
-          let valueInput = document.getElementById("metadataValue");
-          valueInput.focus();
-          valueInput.select();
+          let input = document.getElementById("metadataValue");
+          input.focus();
+          input.select();
         } else if (key === 's') {
           e.preventDefault();
           let srcSelect = document.getElementById("srcPlateSelect");
