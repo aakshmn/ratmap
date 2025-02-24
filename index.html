@@ -138,7 +138,7 @@
       <select id="destQuadSelect"></select>
       <button id="mapButton">Map Wells</button>
       <button id="undoButton">Undo</button>
-      <button id="clearAllButton">Reset All 🤢</button>
+      <button id="clearAllButton">Empty 🤮</button>
       <span id="memoryUsage">(0 KB)</span>
     </div>
   </div>
@@ -691,22 +691,23 @@
       updateRatCache();
     });
     
-    // Clear Wells
+    // Clear button: Clear only the metadata value for the currently selected layer for selected wells.
     document.getElementById("clearButton").addEventListener("click", function() {
-      saveUndoState();
       let selected = document.querySelectorAll("td.well.selected");
+      if (selected.length === 0) {
+        alert("No wells selected.");
+        return;
+      }
+      saveUndoState();
+      let layer = document.getElementById("layerDropdown").value;
       selected.forEach(cell => {
         let plateId = cell.getAttribute("data-plate");
         let wellId = cell.getAttribute("data-well");
         if (plateId.includes("96w")) {
-          let data = plate96wData[plateId][wellId];
-          for (let i = 1; i <= 9; i++) { data["metadata_" + i] = ""; }
+          plate96wData[plateId][wellId][layer] = "";
           updateCellDisplay96(cell, plateId, wellId);
         } else {
-          let data = plate384wData[plateId][wellId];
-          for (let i = 1; i <= 9; i++) { data["metadata_" + i] = ""; }
-          data.Src_Plate_96w = "";
-          data.Src_Well_96w = "";
+          plate384wData[plateId][wellId][layer] = "";
           updateCellDisplay384(cell, plateId, wellId);
         }
       });
@@ -714,26 +715,58 @@
       updateRatCache();
     });
     
-    // Undo
-    document.getElementById("undoButton").addEventListener("click", function() {
-      undoLastAction();
+    // Empty 🤮 button: Clear all metadata values across all metadata layers for selected wells.
+    document.getElementById("clearAllButton").addEventListener("click", function() {
+      let selected = document.querySelectorAll("td.well.selected");
+      if (selected.length === 0) {
+        alert("No wells selected.");
+        return;
+      }
+      if (confirm("Hey you stinky little cheese hoarder. This will clear all metadata from the selected wells. Useful when things are getting rancid. 🤢 Click \"OK\" to proceed.")) {
+        saveUndoState();
+        selected.forEach(cell => {
+          let plateId = cell.getAttribute("data-plate");
+          let wellId = cell.getAttribute("data-well");
+          if (plateId.includes("96w")) {
+            let data = plate96wData[plateId][wellId];
+            for (let i = 1; i <= 9; i++) {
+              data["metadata_" + i] = "";
+            }
+            updateCellDisplay96(cell, plateId, wellId);
+          } else {
+            let data = plate384wData[plateId][wellId];
+            for (let i = 1; i <= 9; i++) {
+              data["metadata_" + i] = "";
+            }
+            updateCellDisplay384(cell, plateId, wellId);
+          }
+        });
+        clearAllSelections();
+        updateRatCache();
+      }
     });
     
-    // Export for 96-well Plates with new "sample_id_96w" column
+    // Export for 96-well Plates with new "sample_id_96w" column and Experiment ID prefix.
     document.getElementById("export96Button").addEventListener("click", function() {
+      let experimentId = prompt("Aged cheese needn't mold. Keep it tidy, with an Experiment ID.");
+      if (!experimentId || !/^[A-Za-z0-9_-]+$/.test(experimentId)) {
+        alert("Invalid Experiment ID. Please enter a valid string of letters, numbers, dashes, or underscores (no spaces).");
+        return;
+      }
       let metaCols = determineMetaColumns96();
       let headerMeta = metaCols.map(key => headerTextForKey(key));
       let header = ["sample_id_96w", "Plate_96w", "Well_96w"].concat(headerMeta);
       let csvContent = header.map(h => `"${h}"`).join(",") + "\n";
       document.querySelectorAll(".plate96wCheckbox:checked").forEach(cb => {
         let plateId = cb.value;
+        let newPlateId = experimentId + "_" + plateId;
         let data = plate96wData[plateId];
         cols96.forEach(col => {
           rows96.forEach(row => {
             let wellId = row + col;
             let d = data[wellId];
-            let sampleId = plateId + "_" + wellId;
-            let rowArray = [sampleId, plateId, wellId];
+            let sampleId = newPlateId + "_" + wellId;
+            let rowArray = [sampleId, newPlateId, wellId];
             metaCols.forEach(key => { rowArray.push(d[key]); });
             csvContent += rowArray.map(item => `"${item}"`).join(",") + "\n";
           });
@@ -743,15 +776,20 @@
       let url = URL.createObjectURL(blob);
       let link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", "plate96w_metadata.csv");
+      link.setAttribute("download", experimentId + "_plate96w_metadata.csv");
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     });
     
-    // Export for 384-well Plates with new "sample_id_384w" and "sample_id_96w" columns
+    // Export for 384-well Plates with new "sample_id_384w" and "sample_id_96w" columns and Experiment ID prefix.
     document.getElementById("export384Button").addEventListener("click", function() {
+      let experimentId = prompt("Aged cheese needn't mold. Keep it tidy, with an Experiment ID.");
+      if (!experimentId || !/^[A-Za-z0-9_-]+$/.test(experimentId)) {
+        alert("Invalid Experiment ID. Please enter a valid string of letters, numbers, dashes, or underscores (no spaces).");
+        return;
+      }
       let metaCols = determineMetaColumns384();
       let mappingUsed = false;
       document.querySelectorAll(".plate384wCheckbox:checked").forEach(cb => {
@@ -775,6 +813,7 @@
       let csvContent = header.map(h => `"${h}"`).join(",") + "\n";
       document.querySelectorAll(".plate384wCheckbox:checked").forEach(cb => {
         let plateId = cb.value;
+        let newPlateId = experimentId + "_" + plateId;
         let data = plate384wData[plateId];
         cols384.forEach((col, colIndex) => {
           rows384.forEach((row, rowIndex) => {
@@ -785,16 +824,18 @@
             else if (rnum % 2 === 0 && cnum % 2 === 1) quadrant = "Q2";
             else if (rnum % 2 === 1 && cnum % 2 === 0) quadrant = "Q3";
             else quadrant = "Q4";
-            let fullQuad = plateId + "_" + quadrant;
+            let fullQuad = newPlateId + "_" + quadrant;
             let d = data[wellId];
-            let sampleId384w = plateId + "_" + wellId;
-            let rowArray = [sampleId384w, plateId, wellId, fullQuad];
+            let sampleId384w = newPlateId + "_" + wellId;
+            let rowArray = [sampleId384w, newPlateId, wellId, fullQuad];
             if (mappingUsed) {
               let sampleId96w = "";
+              let newSrcPlate = "";
               if (d.Src_Plate_96w && d.Src_Well_96w) {
-                sampleId96w = d.Src_Plate_96w + "_" + d.Src_Well_96w;
+                newSrcPlate = experimentId + "_" + d.Src_Plate_96w;
+                sampleId96w = newSrcPlate + "_" + d.Src_Well_96w;
               }
-              rowArray.push(sampleId96w, d.Src_Plate_96w, d.Src_Well_96w);
+              rowArray.push(sampleId96w, newSrcPlate, d.Src_Well_96w);
             }
             metaCols.forEach(key => { rowArray.push(d[key]); });
             csvContent += rowArray.map(item => `"${item}"`).join(",") + "\n";
@@ -805,7 +846,7 @@
       let url = URL.createObjectURL(blob);
       let link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", "plate384w_metadata.csv");
+      link.setAttribute("download", experimentId + "_plate384w_metadata.csv");
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -957,30 +998,22 @@
       }
     });
     
-    /***** Reset All Metadata & Layer Names *****/
-    document.getElementById("clearAllButton").addEventListener("click", function() {
-      if (confirm("Hey you stinky little cheese hoarder. Purge your rancid memory stash before your browser keels over! 🤮 Click \"OK\" to clear all metadata. This action cannot be undone.")) {
-        plate96wData = {};
-        plate384wData = {};
-        document.getElementById("plate96wContainer").innerHTML = "";
-        document.getElementById("plate384wContainer").innerHTML = "";
-        layerNames = ["Metadata_1", "Metadata_2", "Metadata_3", "Metadata_4", "Metadata_5", "Metadata_6", "Metadata_7", "Metadata_8", "Metadata_9"];
-        updateLayerDropdowns();
-        alert("All metadata has been cleared.");
-        updateRatCache();
-      }
+    /***** Undo Button Handler *****/
+    document.getElementById("undoButton").addEventListener("click", function() {
+      undoLastAction();
     });
-    
+
     /***** Keyboard Shortcuts *****
          - Ctrl/⌘ + Shift + L or M : Focus & select the metadata value input.
-         - Ctrl/⌘ + Shift + S : Focus the Source drop-down.
-         - Ctrl/⌘ + Shift + D : Focus the Destination drop-down.
+         - Ctrl/⌘ + Shift + S : Focus the Source dropdown.
+         - Ctrl/⌘ + Shift + D : Focus the Destination dropdown.
          - Ctrl/⌘ + Shift + O : Focus the Export button in the 96-well Plates Section.
          - Ctrl/⌘ + Shift + P : Focus the Export button in the 384-well Plates Section.
-         - Plate toggling shortcuts remain unchanged.
+         - Plate toggling shortcuts remain as before.
     */
     document.addEventListener("keydown", function(e) {
       const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      // Plate toggling: Ctrl/Cmd + Alt [+ Shift] + [Digit]
       if ((isMac ? e.metaKey : e.ctrlKey) && e.altKey) {
         const plateMapping = {
           "Digit1": "P01_96w",
@@ -997,12 +1030,14 @@
         if (e.code in plateMapping) {
           let plateId = plateMapping[e.code];
           if (e.shiftKey) {
+            // Simulate click on plate's select-all header.
             let table = document.querySelector('table.plateTable[data-plate="'+plateId+'"]');
             if (table) {
               let thSelectAll = table.querySelector('th.select-all');
               if (thSelectAll) { thSelectAll.click(); }
             }
           } else {
+            // Toggle the plate checkbox.
             let checkbox;
             if (plateId.includes("96w")) {
               checkbox = document.querySelector('input.plate96wCheckbox[value="'+plateId+'"]');
@@ -1019,6 +1054,7 @@
         }
       }
       
+      // Other shortcuts: Ctrl/Cmd + Shift (without Alt)
       if ((isMac ? e.metaKey : e.ctrlKey) && e.shiftKey && !e.altKey) {
         let key = e.key.toLowerCase();
         if (key === 'l' || key === 'm') {
