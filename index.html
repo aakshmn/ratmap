@@ -2,178 +2,816 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RatMap v0.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RatMap v0.2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script>
     // Disable right-click
     document.addEventListener("contextmenu", function(e) {
       e.preventDefault();
     });
-    // Password protection: prompt for password and block access if not correct.
+    
+    // Initialize app - removed password protection
     window.onload = function () {
-      let password;
-      while (password !== "whiskers") {
-        password = prompt("Enter password:");
-        if (password === null) {
-          document.body.innerHTML = "<h1>Access Denied</h1>";
-          return;
-        }
-      }
+      // Initialize the visibility of plate sections based on checkboxes
+      updatePlateVisibility();
     };
   </script>
   <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #4895ef;
+      --secondary: #3f37c9;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9a1;
+      --warning: #ffc857;
+      --danger: #e63946;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 2px 4px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --border-radius: 6px;
+      --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 0;
-    }
-    h2 {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--dark);
+      background-color: var(--light);
+      line-height: 1.5;
       margin: 0;
+      padding: 0;
     }
-    .subheader {
-      text-align: center;
-      font-style: italic;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
+
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0.75rem;
     }
-    /* Global Controls: now two full–width rows */
-    #globalControls {
+
+    .top-section {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      padding: 10px;
-    }
-    #metadataSection, #mappingSection {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    /* Keep the plate container styles */
-    #plateContainers {
-      display: flex;
-      gap: 20px;
-    }
-    .plateSection {
-      flex: 1;
-      border: 1px solid #aaa;
-      padding: 10px;
-      overflow-x: auto;
-      position: relative;
-    }
-    .plateHeader {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      align-items: center;
+      margin-bottom: 0.75rem;
     }
-    .plateHeader h2 {
-      margin: 0;
-      font-size: 1.1rem;
-    }
-    .plateHeader button {
+
+    .subheader {
+      color: var(--gray-700);
       font-size: 0.9rem;
-      padding: 4px 8px;
+      text-align: left;
+      padding: 0.5rem 0;
+      flex: 1;
     }
-    .plateWrapper {
-      margin-bottom: 30px;
+
+    .subheader strong {
+      font-style: normal;
+      font-weight: 600;
+      color: var(--primary);
     }
-    .plateWrapper h3 {
-      margin-bottom: 5px;
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    a:hover {
+      color: var(--primary-light);
+      text-decoration: underline;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
       text-align: center;
+      color: var(--secondary);
     }
-    .plateTable {
-      margin-bottom: 10px;
-      border-collapse: collapse;
+
+    /* Card styles */
+    .card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 0.75rem;
+    }
+
+    /* Controls section */
+    .controls-section {
+      margin-bottom: 0.75rem;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .control-item > * {
+      min-width: 0;
+    }
+
+    .control-item.dropdown {
+      flex: 1.5;
+    }
+    
+    .control-item.text-input {
+      flex: 3.2;
+    }
+    
+    .control-item.button {
+      flex: 0.8;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      white-space: nowrap;
+      margin-right: 0.1rem;
+      min-width: 2rem;
+    }
+
+    /* Form controls */
+    select, input, button {
+      padding: 0.4rem 0.6rem;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-300);
+      font-size: 0.9rem;
+      transition: var(--transition);
+      background-color: white;
       width: 100%;
     }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.6rem;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      border: 1px solid transparent;
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-light);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--gray-300);
+      color: var(--gray-700);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #36b089;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #d32f3a;
+    }
+
+    .btn-sm {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.5rem;
+    }
+
+    /* Plates selection section - made more compact */
+    .plates-selection-section {
+      flex: 1;
+    }
+
+    .plates-selection-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    
+    .plates-selection-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-right: 0.5rem;
+    }
+
+    .plate-checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--border-radius);
+      background-color: var(--gray-100);
+      transition: var(--transition);
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .plate-checkbox-label:hover {
+      background-color: var(--gray-200);
+    }
+
+    .plate-checkbox-label.active {
+      background-color: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+    }
+
+    .plate-checkbox-label input {
+      margin-right: 0.3rem;
+      width: auto;
+    }
+
+    /* Plate containers */
+    .plates-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .plate-section {
+      width: 100%;
+      margin-bottom: 1rem;
+      display: none; /* Hidden by default, shown based on checkbox selection */
+    }
+
+    .plate-section.active {
+      display: block;
+    }
+
+    .plate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background-color: rgba(67, 97, 238, 0.05);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .plate-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--secondary);
+      margin: 0;
+      flex: 1;
+    }
+
+    .plate-wrapper {
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Two-column layout for 96-well plates */
+    #plate96wContainer {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    
+    /* Ensure one column on mobile */
+    @media (max-width: 992px) {
+      #plate96wContainer {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .plate-table-container {
+      overflow: auto;
+      margin-bottom: 0.5rem;
+      /* Increased max height by 25% */
+      max-height: 625px;
+    }
+    
+    /* Double max height for 384-well plates */
+    #section384w .plate-table-container {
+      max-height: 1250px;
+    }
+
+    .plateTable {
+      border-collapse: collapse;
+      width: auto;
+      margin-bottom: 0.5rem;
+    }
+
     .plateTable th, .plateTable td {
-      border: 1px solid #444;
-      width: 30px;
-      height: 30px;
+      /* Increased contrast for gridlines */
+      border: 1px solid var(--gray-400);
+      min-width: 36px;
+      height: 36px;
       text-align: center;
       font-size: 0.7rem;
       padding: 2px;
+      white-space: nowrap;
     }
+
     .plateTable th {
-      background-color: #eee;
+      background-color: var(--gray-100);
+      font-weight: 600;
       cursor: pointer;
       user-select: none;
+      transition: var(--transition);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
+
+    .plateTable th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+    }
+
+    .plateTable th:hover {
+      background-color: var(--gray-200);
+    }
+
     .plateTable td {
-      background-color: #fff;
+      background-color: white;
       cursor: pointer;
       user-select: none;
+      transition: var(--transition);
     }
-    .selected {
-      background-color: #fffa90 !important;
+
+    .plateTable td:hover {
+      background-color: rgba(67, 97, 238, 0.05);
+    }
+
+    .plateTable .selected {
+      background-color: rgba(67, 97, 238, 0.2) !important;
+    }
+
+    /* Well content styling */
+    .well-id {
+      font-weight: bold;
+      font-size: 0.65rem;
+      color: var(--gray-600);
+    }
+
+    .metadata {
+      font-size: 0.65rem;
+      overflow: visible;
+    }
+
+    /* Memory usage */
+    #memoryUsage {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--border-radius);
+      background-color: var(--gray-100);
+      font-size: 0.8rem;
+      color: var(--gray-700);
+    }
+
+    /* Keyboard Shortcuts Help Popup */
+    .shortcuts-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      padding: 1.5rem;
+    }
+    
+    .shortcuts-popup.active {
+      display: block;
+    }
+    
+    .shortcuts-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+    
+    .shortcuts-overlay.active {
+      display: block;
+    }
+    
+    .shortcuts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .shortcuts-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0;
+    }
+    
+    .shortcuts-close {
+      background: none;
+      border: none;
+      color: var(--gray-600);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+    
+    .shortcuts-close:hover {
+      color: var(--gray-800);
+    }
+    
+    .shortcuts-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .shortcuts-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--secondary);
+    }
+    
+    .shortcuts-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .shortcuts-table tr:nth-child(odd) {
+      background-color: var(--gray-50);
+    }
+    
+    .shortcuts-table td {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .shortcuts-table td:first-child {
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .key {
+      display: inline-block;
+      background-color: var(--gray-200);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      margin: 0 0.1rem;
+      font-size: 0.85rem;
+      font-family: monospace;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    /* Export button - more compact */
+    .export-btn {
+      width: auto;
+      min-width: 110px;
+    }
+
+    /* Utility */
+    .d-flex {
+      display: flex;
+    }
+
+    .align-center {
+      align-items: center;
+    }
+
+    .justify-between {
+      justify-content: space-between;
+    }
+
+    .gap-1 {
+      gap: 0.25rem;
+    }
+
+    .gap-2 {
+      gap: 0.5rem;
+    }
+
+    .mb-1 {
+      margin-bottom: 0.25rem;
+    }
+
+    .mb-2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .grow {
+      flex-grow: 1;
+    }
+
+    .w-100 {
+      width: 100%;
+    }
+
+    /* Responsive layout for the controls */
+    @media (max-width: 768px) {
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .top-section {
+        flex-direction: column;
+      }
+      
+      .subheader, .plates-selection-section {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>RatMap v0.1</h1>
-  <div class="subheader">
-    An opinionated plate mapping tool for filthy festering lab rats. 
-    <span style="font-style: normal;">💩🐀 Created by <a href="https://github.com/aakshmn" target="_blank">aakshmn</a><span style="font-style: normal;">. (</span><a href="https://github.com/aakshmn/ratmap/blob/main/README.md" target="_blank">README</a><span style="font-style: normal;">)</span>
+  <div class="container">
+    <!-- Reorganized top section with tagline and plate toggles side by side -->
+    <div class="top-section">
+      <div class="subheader">
+        <strong>RatMap (v0.2).</strong> An opinionated plate mapping tool for filthy festering lab rats. 
+        💩🐀 Created by <a href="https://github.com/aakshmn" target="_blank">aakshmn</a>. 
+        (<a href="https://github.com/aakshmn/ratmap/blob/main/README.md" target="_blank">README</a>)
+      </div>
+      
+      <!-- Plate Selection Section - moved above assignment controls and made more compact -->
+      <div class="plates-selection-section">
+        <div class="plates-selection-content">
+          <div class="plates-selection-group">
+            <label class="plate-checkbox-label" data-plate="P01_96w">
+              <input type="checkbox" value="P01_96w" class="plate96wCheckbox"> P01_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P02_96w">
+              <input type="checkbox" value="P02_96w" class="plate96wCheckbox"> P02_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P03_96w">
+              <input type="checkbox" value="P03_96w" class="plate96wCheckbox"> P03_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P04_96w">
+              <input type="checkbox" value="P04_96w" class="plate96wCheckbox"> P04_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P05_96w">
+              <input type="checkbox" value="P05_96w" class="plate96wCheckbox"> P05_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P06_96w">
+              <input type="checkbox" value="P06_96w" class="plate96wCheckbox"> P06_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P07_96w">
+              <input type="checkbox" value="P07_96w" class="plate96wCheckbox"> P07_96w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P08_96w">
+              <input type="checkbox" value="P08_96w" class="plate96wCheckbox"> P08_96w
+            </label>
+          </div>
+          
+          <div class="plates-selection-group">
+            <label class="plate-checkbox-label" data-plate="P01_384w">
+              <input type="checkbox" value="P01_384w" class="plate384wCheckbox"> P01_384w
+            </label>
+            <label class="plate-checkbox-label" data-plate="P02_384w">
+              <input type="checkbox" value="P02_384w" class="plate384wCheckbox"> P02_384w
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Consolidated Controls Section -->
+    <div class="card controls-section">
+      <div class="card-body">
+        <div class="controls-grid">
+          <!-- Layer & Metadata Controls -->
+          <div class="control-item dropdown">
+            <select id="layerDropdown" title="Select metadata layer"></select>
+          </div>
+          <div class="control-item button">
+            <button id="renameLayerButton" class="btn btn-outline btn-sm">
+              <i class="fa fa-pencil"></i> Rename
+            </button>
+          </div>
+          <div class="control-item text-input">
+            <input type="text" id="metadataValue" placeholder="Enter value">
+          </div>
+          <div class="control-item button">
+            <button id="assignButton" class="btn btn-primary btn-sm">
+              <i class="fa fa-check"></i> Assign
+            </button>
+          </div>
+          <div class="control-item button">
+            <button id="clearButton" class="btn btn-outline btn-sm">
+              <i class="fa fa-eraser"></i> Clear
+            </button>
+          </div>
+          
+          <!-- Mapping Controls -->
+          <div class="control-item dropdown">
+            <span class="control-label">Src</span>
+            <select id="srcPlateSelect"></select>
+          </div>
+          <div class="control-item dropdown">
+            <span class="control-label">Dest</span>
+            <select id="destQuadSelect"></select>
+          </div>
+          <div class="control-item button">
+            <button id="mapButton" class="btn btn-primary btn-sm">
+              <i class="fa fa-exchange-alt"></i> Map
+            </button>
+          </div>
+          <div class="control-item button">
+            <button id="undoButton" class="btn btn-outline btn-sm">
+              <i class="fa fa-undo"></i> Undo
+            </button>
+          </div>
+          <div class="control-item button">
+            <button id="clearAllButton" class="btn btn-danger btn-sm">
+              <i class="fa fa-trash-alt"></i> Empty 🤮
+            </button>
+          </div>
+          <div class="control-item">
+            <span id="memoryUsage">(0 KB)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Plates Container -->
+    <div class="plates-container">
+      <!-- 96-well Plates Section - modified header -->
+      <div class="plate-section" id="section96w">
+        <div class="card">
+          <div class="plate-header">
+            <h2 class="plate-title">96-well Plates</h2>
+            <button id="export96Button" class="btn btn-success btn-sm export-btn">
+              <i class="fa fa-file-export"></i> Export 🧀
+            </button>
+          </div>
+          <div class="card-body">
+            <div id="plate96wContainer"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 384-well Plates Section - modified header -->
+      <div class="plate-section" id="section384w">
+        <div class="card">
+          <div class="plate-header">
+            <h2 class="plate-title">384-well Plates</h2>
+            <button id="export384Button" class="btn btn-success btn-sm export-btn">
+              <i class="fa fa-file-export"></i> Export 🧀
+            </button>
+          </div>
+          <div class="card-body">
+            <div id="plate384wContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   
-  <!-- Global Controls: Two Rows -->
-  <div id="globalControls">
-    <!-- Top Row: Metadata Controls -->
-    <div id="metadataSection">
-      <select id="layerDropdown"></select>
-      <button id="renameLayerButton">Rename</button>
-      <input type="text" id="metadataValue" placeholder="Enter value">
-      <button id="assignButton">Assign</button>
-      <button id="clearButton">Clear</button>
+  <!-- Keyboard Shortcuts Popup -->
+  <div class="shortcuts-overlay" id="shortcutsOverlay"></div>
+  <div class="shortcuts-popup" id="shortcutsPopup">
+    <div class="shortcuts-header">
+      <h3 class="shortcuts-title">Keyboard Shortcuts</h3>
+      <button class="shortcuts-close" id="shortcutsClose">
+        <i class="fa fa-times"></i>
+      </button>
     </div>
-    <!-- Bottom Row: Mapping & Undo/Reset -->
-    <div id="mappingSection">
-      <span>Source</span>
-      <select id="srcPlateSelect"></select>
-      <span>Destination</span>
-      <select id="destQuadSelect"></select>
-      <button id="mapButton">Map Wells</button>
-      <button id="undoButton">Undo</button>
-      <button id="clearAllButton">Empty 🤮</button>
-      <span id="memoryUsage">(0 KB)</span>
+    
+    <div class="shortcuts-section">
+      <h4 class="shortcuts-section-title">General Controls</h4>
+      <table class="shortcuts-table">
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">L</span> or <span class="key">M</span></td>
+          <td>Focus and select the metadata value input</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">S</span></td>
+          <td>Focus the Source dropdown</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">D</span></td>
+          <td>Focus the Destination dropdown</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">O</span></td>
+          <td>Focus the 96-well plates Export button</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">P</span></td>
+          <td>Focus the 384-well plates Export button</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">/</span></td>
+          <td>Toggle this shortcuts help (Mac: <span class="key">⌘</span> + <span class="key">/</span>)</td>
+        </tr>
+        <tr>
+          <td><span class="key">Esc</span></td>
+          <td>Close shortcuts help popup</td>
+        </tr>
+      </table>
     </div>
-  </div>
-  
-  <!-- Plate Containers -->
-  <div id="plateContainers">
-    <!-- 96-well Plates Section -->
-    <div class="plateSection" id="container96w">
-      <div class="plateHeader">
-        <h2>96-well Plates</h2>
-        <button id="export96Button">Export 🧀</button>
-      </div>
-      <div id="plate96wSelector">
-        <label><input type="checkbox" value="P01_96w" class="plate96wCheckbox"> P01_96w</label>
-        <label><input type="checkbox" value="P02_96w" class="plate96wCheckbox"> P02_96w</label>
-        <label><input type="checkbox" value="P03_96w" class="plate96wCheckbox"> P03_96w</label>
-        <label><input type="checkbox" value="P04_96w" class="plate96wCheckbox"> P04_96w</label>
-        <label><input type="checkbox" value="P05_96w" class="plate96wCheckbox"> P05_96w</label>
-        <label><input type="checkbox" value="P06_96w" class="plate96wCheckbox"> P06_96w</label>
-        <label><input type="checkbox" value="P07_96w" class="plate96wCheckbox"> P07_96w</label>
-        <label><input type="checkbox" value="P08_96w" class="plate96wCheckbox"> P08_96w</label>
-      </div>
-      <div id="plate96wContainer"></div>
+    
+    <div class="shortcuts-section">
+      <h4 class="shortcuts-section-title">Plate Toggling</h4>
+      <table class="shortcuts-table">
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">1</span> - <span class="key">8</span></td>
+          <td>Toggle 96-well plates P01 through P08 (Mac: <span class="key">⌘</span> + <span class="key">Option</span>)</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">9</span> - <span class="key">0</span></td>
+          <td>Toggle 384-well plates P01 and P02 (Mac: <span class="key">⌘</span> + <span class="key">Option</span>)</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">Shift</span> + <span class="key">1</span> - <span class="key">0</span></td>
+          <td>Select all wells in the corresponding plate (Mac: <span class="key">⌘</span> + <span class="key">Option</span> + <span class="key">Shift</span>)</td>
+        </tr>
+      </table>
     </div>
-    <!-- 384-well Plates Section -->
-    <div class="plateSection" id="container384w">
-      <div class="plateHeader">
-        <h2>384-well Plates</h2>
-        <button id="export384Button">Export 🧀</button>
-      </div>
-      <div id="plate384wSelector">
-        <label><input type="checkbox" value="P01_384w" class="plate384wCheckbox"> P01_384w</label>
-        <label><input type="checkbox" value="P02_384w" class="plate384wCheckbox"> P02_384w</label>
-      </div>
-      <div id="plate384wContainer"></div>
+    
+    <div class="shortcuts-section">
+      <h4 class="shortcuts-section-title">Metadata Assignment</h4>
+      <table class="shortcuts-table">
+        <tr>
+          <td><span class="key">Enter</span></td>
+          <td>Assign value to selected well(s) in column-major order</td>
+        </tr>
+        <tr>
+          <td><span class="key">Shift</span> + <span class="key">Enter</span></td>
+          <td>Assign value to selected well(s) in row-major order</td>
+        </tr>
+        <tr>
+          <td><span class="key">Shift</span> + <span class="key">Alt</span> + <span class="key">Enter</span></td>
+          <td>Rename the current layer (Mac: <span class="key">Shift</span> + <span class="key">Option</span> + <span class="key">Enter</span>)</td>
+        </tr>
+      </table>
     </div>
   </div>
   
@@ -571,6 +1209,47 @@
     
     setInterval(updateRatCache, 5000);
 
+    /***** Plate Selection & Visibility *****/
+    function updatePlateVisibility() {
+      const has96w = document.querySelectorAll('.plate96wCheckbox:checked').length > 0;
+      const has384w = document.querySelectorAll('.plate384wCheckbox:checked').length > 0;
+      
+      // Update section visibility
+      const section96w = document.getElementById('section96w');
+      const section384w = document.getElementById('section384w');
+      
+      if (has96w) {
+        section96w.classList.add('active');
+        // Update checkbox labels
+        document.querySelectorAll('.plate-checkbox-label[data-plate^="P"][data-plate$="96w"]').forEach(label => {
+          if (label.querySelector('input').checked) {
+            label.classList.add('active');
+          } else {
+            label.classList.remove('active');
+          }
+        });
+      } else {
+        section96w.classList.remove('active');
+      }
+      
+      if (has384w) {
+        section384w.classList.add('active');
+        // Update checkbox labels
+        document.querySelectorAll('.plate-checkbox-label[data-plate^="P"][data-plate$="384w"]').forEach(label => {
+          if (label.querySelector('input').checked) {
+            label.classList.add('active');
+          } else {
+            label.classList.remove('active');
+          }
+        });
+      } else {
+        section384w.classList.remove('active');
+      }
+      
+      // Update mapping dropdowns
+      updateMappingDropdowns();
+    }
+
     /***** Button Handlers *****/
     // Layer Rename (now uses the same dropdown & input)
     function performLayerRename() {
@@ -887,7 +1566,6 @@
       document.body.removeChild(link);
     });
     
-    
     // Mapping to Quadrant (Map Wells)
     document.getElementById("mapButton").addEventListener("click", function() {
       clearAllSelections();
@@ -955,6 +1633,15 @@
       cb.addEventListener("change", function() {
         let plateId = cb.value;
         let container = document.getElementById("plate96wContainer");
+        
+        // Update checkbox label class
+        const label = document.querySelector(`.plate-checkbox-label[data-plate="${plateId}"]`);
+        if (this.checked) {
+          label.classList.add('active');
+        } else {
+          label.classList.remove('active');
+        }
+        
         if (cb.checked) {
           if (!plate96wData[plateId]) initPlate96(plateId);
           let table = generate96PlateTable(plateId);
@@ -965,19 +1652,31 @@
           let label = document.createElement("h3");
           label.textContent = plateId;
           plateDiv.appendChild(label);
-          plateDiv.appendChild(table);
+          let tableContainer = document.createElement("div");
+          tableContainer.className = "plate-table-container";
+          tableContainer.appendChild(table);
+          plateDiv.appendChild(tableContainer);
           container.appendChild(plateDiv);
         } else {
           let plateDiv = document.getElementById(plateId);
           if (plateDiv) plateDiv.remove();
         }
-        updateMappingDropdowns();
+        updatePlateVisibility();
       });
     });
     document.querySelectorAll(".plate384wCheckbox").forEach(cb => {
       cb.addEventListener("change", function() {
         let plateId = cb.value;
         let container = document.getElementById("plate384wContainer");
+        
+        // Update checkbox label class
+        const label = document.querySelector(`.plate-checkbox-label[data-plate="${plateId}"]`);
+        if (this.checked) {
+          label.classList.add('active');
+        } else {
+          label.classList.remove('active');
+        }
+        
         if (cb.checked) {
           if (!plate384wData[plateId]) initPlate384(plateId);
           let table = generate384PlateTable(plateId);
@@ -988,13 +1687,16 @@
           let label = document.createElement("h3");
           label.textContent = plateId;
           plateDiv.appendChild(label);
-          plateDiv.appendChild(table);
+          let tableContainer = document.createElement("div");
+          tableContainer.className = "plate-table-container";
+          tableContainer.appendChild(table);
+          plateDiv.appendChild(tableContainer);
           container.appendChild(plateDiv);
         } else {
           let plateDiv = document.getElementById(plateId);
           if (plateDiv) plateDiv.remove();
         }
-        updateMappingDropdowns();
+        updatePlateVisibility();
       });
     });
     function updateMappingDropdowns() {
@@ -1038,16 +1740,24 @@
       undoLastAction();
     });
 
-    /***** Keyboard Shortcuts *****
-         - Ctrl/⌘ + Shift + L or M : Focus & select the metadata value input.
-         - Ctrl/⌘ + Shift + S : Focus the Source dropdown.
-         - Ctrl/⌘ + Shift + D : Focus the Destination dropdown.
-         - Ctrl/⌘ + Shift + O : Focus the Export button in the 96-well Plates Section.
-         - Ctrl/⌘ + Shift + P : Focus the Export button in the 384-well Plates Section.
-         - Plate toggling shortcuts remain as before.
-    */
+    /***** Keyboard Shortcuts *****/
     document.addEventListener("keydown", function(e) {
       const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      
+      // Toggle shortcuts help popup with Ctrl/Cmd + /
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.key === '/') {
+        e.preventDefault();
+        toggleShortcutsPopup();
+        return;
+      }
+      
+      // Close shortcuts popup with Escape
+      if (e.key === 'Escape' && document.getElementById('shortcutsPopup').classList.contains('active')) {
+        e.preventDefault();
+        closeShortcutsPopup();
+        return;
+      }
+      
       // Plate toggling: Ctrl/Cmd + Alt [+ Shift] + [Digit]
       if ((isMac ? e.metaKey : e.ctrlKey) && e.altKey) {
         const plateMapping = {
@@ -1115,6 +1825,45 @@
           export384.focus();
         }
       }
+    });
+    
+    /***** Shortcuts Popup Functions *****/
+    function toggleShortcutsPopup() {
+      const popup = document.getElementById('shortcutsPopup');
+      const overlay = document.getElementById('shortcutsOverlay');
+      
+      if (popup.classList.contains('active')) {
+        closeShortcutsPopup();
+      } else {
+        popup.classList.add('active');
+        overlay.classList.add('active');
+      }
+    }
+    
+    function closeShortcutsPopup() {
+      const popup = document.getElementById('shortcutsPopup');
+      const overlay = document.getElementById('shortcutsOverlay');
+      
+      popup.classList.remove('active');
+      overlay.classList.remove('active');
+    }
+    
+    // Event listeners for shortcuts popup
+    document.getElementById('shortcutsClose').addEventListener('click', closeShortcutsPopup);
+    document.getElementById('shortcutsOverlay').addEventListener('click', closeShortcutsPopup);
+    
+    /***** Prevent accidental refresh *****/
+    window.addEventListener('beforeunload', function(e) {
+      // This exact message might not be shown in modern browsers - they use their own standard messages
+      // But the browser will still display a confirmation dialog
+      const confirmationMessage = "Oi, you rancid, poopy-smelling vermin! Got too excited, did ya? Click \"OK,\" and poof—all your precious metadata's gone. No take-backs. Now scram before your stink lingers! 🪤";
+      
+      // Modern standard way to trigger the confirmation dialog
+      e.preventDefault();
+      e.returnValue = confirmationMessage;
+      
+      // For older browsers
+      return confirmationMessage;
     });
   </script>
 </body>
