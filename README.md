@@ -1,4 +1,4 @@
-# RatMap v0.1  
+# RatMap v0.2  
 *An opinionated plate mapping tool for filthy festering lab rats.* 💩🐀  
 
 ---
@@ -31,13 +31,13 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 
 ### Requirements
 - **Modern Web Browser:** RatMap runs best on modern browsers that comfortably handle up to 200MB of data.
-- **Password Protection:** When the app loads, you'll be prompted for a password. Enter "whiskers" (or maybe you already knew that, you sneaky rodent).
+- **No Password Required:** Unlike v0.1, v0.2 has removed password protection for easier access.
 
 ### General Setup
 - **Select Your Plates:**  
-  - Use the checkboxes to display your desired 96-well and/or 384-well plates.
+  - Use the checkboxes at the top of the interface to display your desired 96-well and/or 384-well plates.
 - **Customize Metadata Layers:**  
-  - Rename the default metadata layers to custom names via the dropdown menu and Rename button.
+  - Rename the default metadata layers using the dropdown menu and Rename button.
 - **Proceed with Data Entry:**  
   - Make well selections to assign experimental metadata values to specific wells.  
   - If your lab experiment requires it, utilize the quadrant mapping feature (common in 96-to-384 well stamping with liquid handlers) to map wells accordingly.
@@ -71,47 +71,44 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
   - **For 384-well Plates:**  
       - Includes a unique `sample_id_384w`, Plate and Well IDs, quadrant information, and—if quadrant mapping was used—additional mapping columns such as `sample_id_96w`, `Src_Plate_96w`, and `Src_Well_96w`, along with all metadata columns.  
   - These exports are designed to be intuitive, making it simple even for you, you filthy lab rat, to merge and map your metadata with raw experimental data.
+  - **Experiment ID:** You can now provide an optional Experiment ID during export or skip it by leaving it blank.
 - **Undo Functionality:**  
   - One-level undo to revert accidental changes using the Undo button.
 - **Memory Monitoring:**  
   - A memory usage indicator helps you keep track of your session's memory usage.
+- **Keyboard Shortcuts Help:**
+  - Press Ctrl/⌘ + / to view a comprehensive list of available keyboard shortcuts.
 
 ---
 
 ## Using RatMap
 
-### Global Controls Panel
-The global controls are now organized into two rows:
+### Interface Layout
+The updated interface (v0.2) has been reorganized for better efficiency:
 
-#### Top Row: Metadata Controls
-- **Layer Selection and Renaming:**  
-  - Select a metadata layer from the dropdown, input a new name in the value field, and click **Rename**.
-- **Value Assignment:**  
-  - With a layer selected, enter a value in the text field and click **Assign**.
-  - For single-well selections, the app will automatically advance to the next well.
-  - For multiple wells, all selected wells will receive the value.
-  - For comma/space-separated lists, each well will receive its corresponding value.
-- **Clear Button:**
-  - Clears only the currently selected metadata layer for the selected wells.
+- **Top Section:**
+  - App title and tagline
+  - Plate selection checkboxes with visual indicators for active plates
 
-#### Bottom Row: Mapping & Undo/Reset
-- **Quadrant Mapping:**  
-  - Choose a source 96-well plate and a destination quadrant for a 384-well plate, then click **Map Wells**.
-- **Undo Button:**
-  - Reverts your last action.
-- **Empty 🤮 Button:**
-  - Clears ALL metadata values across ALL layers for selected wells.
-- **Memory Usage:**
-  - Shows the current memory usage of your session in KB or MB.
+- **Controls Section:**
+  - **Layer & Metadata Controls:**
+    - Layer dropdown
+    - Rename button
+    - Metadata value input field
+    - Assign and Clear buttons
+  - **Mapping Controls:**
+    - Source plate selection
+    - Destination quadrant selection
+    - Map, Undo, and Empty buttons
+    - Memory usage indicator
 
-### Plate Sections
-- **96-well Plates:**  
-  - Display available plates via checkboxes.  
-  - Each plate grid shows well IDs and metadata.
-  - "Export 🧀" button for exporting 96-well plate data.
-- **384-well Plates:**  
-  - Similar layout with additional mapping columns (e.g., source well details).
-  - "Export 🧀" button for exporting 384-well plate data.
+- **Plate Sections:**
+  - **96-well Plates:** 
+    - Displayed when at least one 96-well plate is selected
+    - Export button for exporting data
+  - **384-well Plates:**
+    - Displayed when at least one 384-well plate is selected
+    - Export button for exporting data
 
 ### Selection Mechanics
 - **Simple Click:** Toggle selection of an individual well.
@@ -122,20 +119,32 @@ The global controls are now organized into two rows:
 
 ## Keyboard Shortcuts
 
-| Shortcut Combination                   | Action Description                                                             |
-| -------------------------------------- | ------------------------------------------------------------------------------ |
-| **Ctrl/⌘ + Shift + L**                 | Focus & select the metadata value input                                        |
-| **Ctrl/⌘ + Shift + M**                 | Focus & select the metadata value input (alternative)                          |
-| **Ctrl/⌘ + Shift + S**                 | Focus the "Source" dropdown                                                    |
-| **Ctrl/⌘ + Shift + D**                 | Focus the "Destination" dropdown                                               |
-| **Ctrl/⌘ + Shift + O**                 | Focus the "Export 🧀" button (96-well Plates)                                  |
-| **Ctrl/⌘ + Shift + P**                 | Focus the "Export 🧀" button (384-well Plates)                                 |
-| **Enter**                              | Apply value to selected wells (column-major order)                              |
-| **Shift + Enter**                      | Apply value to selected wells (row-major order)                                |
-| **Shift + Alt/Option + Enter**         | Perform layer rename operation                                                 |
-| **Plate Toggling (Windows/Mac)**       | <ul><li>**Without Shift:** Toggle plate checkbox (Ctrl + Alt + [number] / Cmd + Option + [number])</li><li>**With Shift:** Simulate a click on the plate's select-all header (Ctrl + Alt + Shift + [number] / Cmd + Option + Shift + [number])</li></ul> |
+The app now features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view). Available shortcuts include:
 
-*Keep these shortcuts handy—like a well-hidden stash of cheese!*
+### General Controls
+| Shortcut | Action |
+|---------|--------|
+| Ctrl/⌘ + Shift + L or M | Focus and select the metadata value input |
+| Ctrl/⌘ + Shift + S | Focus the Source dropdown |
+| Ctrl/⌘ + Shift + D | Focus the Destination dropdown |
+| Ctrl/⌘ + Shift + O | Focus the 96-well plates Export button |
+| Ctrl/⌘ + Shift + P | Focus the 384-well plates Export button |
+| Ctrl/⌘ + / | Toggle shortcuts help popup |
+| Esc | Close shortcuts help popup |
+
+### Plate Toggling
+| Shortcut | Action |
+|---------|--------|
+| Ctrl/⌘ + Alt/Option + 1-8 | Toggle 96-well plates P01 through P08 |
+| Ctrl/⌘ + Alt/Option + 9-0 | Toggle 384-well plates P01 and P02 |
+| Ctrl/⌘ + Alt/Option + Shift + 1-0 | Select all wells in the corresponding plate |
+
+### Metadata Assignment
+| Shortcut | Action |
+|---------|--------|
+| Enter | Assign value to selected well(s) in column-major order |
+| Shift + Enter | Assign value to selected well(s) in row-major order |
+| Shift + Alt/Option + Enter | Rename the current layer |
 
 ---
 
@@ -145,7 +154,7 @@ The global controls are now organized into two rows:
   - **Warning:**  
     - At 200MB, a warning is triggered. While modern browsers can handle this load, it's advisable to clear unnecessary data if you see this warning.  
     - **Empty Action:** Clicking the **Empty 🤮** button will clear **all metadata** from selected wells.  
-    - Also, be aware that browser actions such as refresh, back, or forward will erase all metadata.
+    - Also, be aware that browser actions such as refresh, back, or forward will erase all metadata. The app now has a confirmation dialog when attempting to leave the page.
   
 *Don't let your data hoard become a trap—regular purges keep the system squeaking along nicely, unlike your sorry excuse for lab hygiene.*
 
@@ -165,6 +174,7 @@ The global controls are now organized into two rows:
 ### Pro Tips
 - **Efficient Selection:**  
   - Use Shift+Click for quick rectangular selections instead of clicking each well individually.
+  - Use the keyboard shortcuts to select entire plates (Ctrl/⌘ + Alt/Option + Shift + [number]).
 - **Layer Management:**  
   - Keep your metadata layers succinct. Rename them to reflect their purpose.
 - **Value Assignment Shortcuts:**
@@ -175,9 +185,11 @@ The global controls are now organized into two rows:
   - Enclose values in double quotes (") to include commas or spaces within a single value.
 - **Exporting Data:**  
   - Verify the visible plates' checkboxes before exporting CSV files to ensure all desired data is included.
-  - Always provide an Experiment ID when exporting to keep your data organized.
+  - The Experiment ID is now optional during export - provide one for better organization or leave it blank to skip.
 - **Undo Usage:**  
   - Use the Undo button immediately after an error—it's your safety net in the maze of data.
+- **Keyboard Shortcuts:**
+  - Use Ctrl/⌘ + / to view the comprehensive shortcuts help popup.
 
 ---
 
@@ -188,8 +200,8 @@ The global controls are now organized into two rows:
   - Any data you enter is stored in your browser's memory (client-side) and is not submitted or transmitted to any external server.
 - **Data Volatility:**  
   - Since your metadata is stored locally, browser actions (such as refresh, back, or forward) will erase all data. Be sure to export your data regularly if needed.
-- **Password Protection:**
-  - A simple password barrier ("whiskers") keeps away non-rats. It's not high security, but it adds a touch of exclusivity to your rodent club.
+- **Browser Protection:**
+  - The app includes safeguards like preventing right-click context menus and displaying confirmation dialog when attempting to leave the page.
 
 ---
 
