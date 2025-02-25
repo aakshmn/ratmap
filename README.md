@@ -33,6 +33,11 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 - **Modern Web Browser:** RatMap runs best on modern browsers that comfortably handle up to 200MB of data.
 - **No Password Required:** Unlike v0.1, v0.2 has removed password protection for easier access.
 
+### Video Walkthrough
+A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older version, the functionality and principles still hold. There are chapters so that you can jump to topics of interest.
+
+- **Watch the demo video:** [RatMap Walkthrough (v0.1)](https://www.youtube.com/watch?v=y_vlosaRKco)
+
 ### General Setup
 - **Select Your Plates:**  
   - Use the checkboxes at the top of the interface to display your desired 96-well and/or 384-well plates.
