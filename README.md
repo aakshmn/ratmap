@@ -36,7 +36,7 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 ### Video Walkthrough
 A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older version, the functionality and principles still hold. There are chapters so that you can jump to topics of interest.
 
-- **Watch the demo video:** [RatMap Walkthrough (v0.1)](https://www.youtube.com/)
+- **Watch the demo video:** [RatMap Walkthrough (v0.1)](https://www.google.com/)
 
 ### General Setup
 - **Select Your Plates:**  
@@ -53,7 +53,8 @@ A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older
 
 ## Key Features
 - **Interactive Plate Mapping:**  
-  - Click or Shift+Click to select wells.  
+  - Click to toggle selection of individual wells.
+  - Click and drag to select multiple wells in rectangular regions.
   - Toggle entire rows, columns, or complete plates.
 - **Metadata Management:**  
   - Rename metadata layers to suit your experiment using the dropdown menu and Rename button.
@@ -67,6 +68,11 @@ A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older
         - **Row-Major Option:** Hold the **Shift** key when clicking **Assign** (or pressing Enter) to assign values in row-major order.
     - **Quoted Assignment:**
       - Values enclosed in double quotes will be treated as a single entry, even if they contain commas or spaces.
+- **Metadata Visualization:**
+  - Use the **Visualize** button to toggle a color-coded view of your metadata.
+  - Color gradients are automatically assigned to unique values in the selected metadata layer.
+  - Toggle between normal selection mode and visualization mode with the same button.
+  - Click any well to exit visualization mode and return to selection mode.
 - **Quadrant Mapping:**  
   - Map data from 96-well plates to specific quadrants on 384-well plates using the Source and Destination dropdowns.
 - **CSV Export:**  
@@ -101,6 +107,7 @@ The updated interface (v0.2) has been reorganized for better efficiency:
     - Rename button
     - Metadata value input field
     - Assign and Clear buttons
+    - Visualize button for toggling metadata visualization mode
   - **Mapping Controls:**
     - Source plate selection
     - Destination quadrant selection
@@ -117,8 +124,14 @@ The updated interface (v0.2) has been reorganized for better efficiency:
 
 ### Selection Mechanics
 - **Simple Click:** Toggle selection of an individual well.
-- **Shift+Click:** Select a rectangular group of wells between the last clicked and current well.
+- **Click and Drag:** Select a rectangular group of wells by clicking one corner and dragging to the opposite corner.
 - **Header Click:** Toggle selection of an entire row, column, or the full plate.
+
+### Visualization Mode
+- **Toggle Visualization:** Click the "Visualize" button to enter a color-coded view of metadata values.
+- **Color Coding:** Each unique value in the selected metadata layer is assigned a color from a gradient.
+- **Layer Selection:** Change the visualized layer using the metadata layer dropdown.
+- **Exiting Visualization Mode:** Click the "Hide Viz" button or click any well to return to normal selection mode.
 
 ---
 
@@ -175,10 +188,12 @@ The app now features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view
   - Values must be from a single plate for list assignments.
 - **Memory Warning:**  
   - If you receive a memory alert, consider clearing unnecessary data to prevent browser crashes.
+- **Visualization Not Showing:**
+  - Make sure the current metadata layer contains values for the wells you want to visualize.
 
 ### Pro Tips
 - **Efficient Selection:**  
-  - Use Shift+Click for quick rectangular selections instead of clicking each well individually.
+  - Use click-and-drag for quick rectangular selections instead of clicking each well individually.
   - Use the keyboard shortcuts to select entire plates (Ctrl/⌘ + Alt/Option + Shift + [number]).
 - **Layer Management:**  
   - Keep your metadata layers succinct. Rename them to reflect their purpose.
@@ -188,6 +203,9 @@ The app now features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view
   - Use **Shift+Alt/Option+Enter** to quickly rename the current layer.
 - **Quoted Values:**
   - Enclose values in double quotes (") to include commas or spaces within a single value.
+- **Visualization Usage:**
+  - Use visualization mode to quickly identify patterns or errors in your plate layout.
+  - Toggle between different metadata layers while in visualization mode to compare different parameters.
 - **Exporting Data:**  
   - Verify the visible plates' checkboxes before exporting CSV files to ensure all desired data is included.
   - The Experiment ID is now optional during export - provide one for better organization or leave it blank to skip.
