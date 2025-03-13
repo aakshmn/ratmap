@@ -36,7 +36,7 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 ### Video Walkthrough
 A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older version, the functionality and principles still hold. There are chapters so that you can jump to topics of interest.
 
-- **Watch the demo video:** [RatMap Walkthrough (v0.1)](https://www.youtube.com/watch?v=y_vlosaRKco)
+- **Watch the demo video:** [RatMap Walkthrough (v0.1)](https://www.youtube.com/)
 
 ### General Setup
 - **Select Your Plates:**  
