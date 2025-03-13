@@ -336,12 +336,12 @@
       overflow: auto;
       margin-bottom: 0.5rem;
       /* Increased max height by 25% */
-      max-height: 625px;
+      max-height: 1000px;
     }
     
     /* Double max height for 384-well plates */
     #section384w .plate-table-container {
-      max-height: 1250px;
+      max-height: 2000px;
     }
 
     .plateTable {
@@ -588,6 +588,14 @@
         width: 100%;
       }
     }
+    
+    /* Prevent user-select during drag operations */
+    .plateTable {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -666,6 +674,11 @@
           <div class="control-item button">
             <button id="clearButton" class="btn btn-outline btn-sm">
               <i class="fa fa-eraser"></i> Clear
+            </button>
+          </div>
+          <div class="control-item button">
+            <button id="deselectAllButton" class="btn btn-outline btn-sm">
+              <i class="fa fa-eye"></i> Visualize
             </button>
           </div>
           
@@ -820,7 +833,7 @@
     let plate96wData = {};
     let plate384wData = {};
     let lastState = null; // for one-level undo
-    let lastClicked = {}; // Object to keep track of last clicked well for each plate
+    let isMetadataOverlayMode = false; // Track whether we're showing the metadata overlay
 
     // Global variable to control well advancement order.
     let advanceOrder = "column";
@@ -847,6 +860,13 @@
       }
     }
     updateLayerDropdowns();
+    
+    // Add change event to layer dropdown to update visualization if active
+    document.getElementById("layerDropdown").addEventListener("change", function() {
+      if (isMetadataOverlayMode) {
+        applyMetadataVisualization();
+      }
+    });
 
     /***** Undo Functions *****/
     function saveUndoState() {
@@ -1018,61 +1038,289 @@
       });
     }
 
-    /***** Selection Handlers *****/
+    /***** Selection and Visualization Handlers *****/
     function clearHeaderSelections() {
       document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
     }
+    
     function clearAllSelections() {
       document.querySelectorAll("td.well.selected, th.selected").forEach(el => el.classList.remove("selected"));
     }
+    
+    // Exit metadata overlay mode and return to normal selection mode
+    function exitMetadataOverlayMode() {
+      if (isMetadataOverlayMode) {
+        isMetadataOverlayMode = false;
+        document.querySelectorAll("td.well").forEach(cell => {
+          cell.style.backgroundColor = "";
+        });
+        
+        // Update the button text
+        const deselectAllButton = document.getElementById("deselectAllButton");
+        deselectAllButton.innerHTML = '<i class="fa fa-eye"></i> Visualize';
+      }
+    }
+    
+    // Generate a color from a gradient based on index and total
+    function getGradientColor(index, total) {
+      // Define gradient stops with pastel colors
+      const colors = [
+        [173, 216, 230],    // Pastel blue
+        [221, 160, 221],    // Pastel purple
+        [255, 182, 193],    // Pastel pink
+        [255, 218, 185],    // Pastel peach
+        [255, 255, 153],    // Pastel yellow
+        [144, 238, 144]     // Pastel green
+      ];
+      
+      // Calculate position in the gradient
+      const position = (index / (total - 1 || 1)) * (colors.length - 1);
+      
+      // Find the two colors to interpolate between
+      const lowerIndex = Math.floor(position);
+      const upperIndex = Math.min(colors.length - 1, lowerIndex + 1);
+      
+      // Calculate interpolation factor
+      const factor = position - lowerIndex;
+      
+      // Interpolate between the two colors
+      const r = Math.round(colors[lowerIndex][0] + factor * (colors[upperIndex][0] - colors[lowerIndex][0]));
+      const g = Math.round(colors[lowerIndex][1] + factor * (colors[upperIndex][1] - colors[lowerIndex][1]));
+      const b = Math.round(colors[lowerIndex][2] + factor * (colors[upperIndex][2] - colors[lowerIndex][2]));
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    
+    // Apply metadata visualization overlay
+    function applyMetadataVisualization() {
+      clearAllSelections();
+      isMetadataOverlayMode = true;
+      
+      // Get the current metadata layer
+      const layer = document.getElementById("layerDropdown").value;
+      
+      // Collect all distinct non-empty values for this layer across visible plates
+      const distinctValues = new Set();
+      
+      // First, collect all values
+      // 96-well plates
+      getVisiblePlate96Ids().forEach(plateId => {
+        const plate = plate96wData[plateId];
+        for (const wellId in plate) {
+          const value = plate[wellId][layer];
+          if (value && value.trim() !== "") {
+            distinctValues.add(value);
+          }
+        }
+      });
+      
+      // 384-well plates
+      getVisiblePlate384Ids().forEach(plateId => {
+        const plate = plate384wData[plateId];
+        for (const wellId in plate) {
+          const value = plate[wellId][layer];
+          if (value && value.trim() !== "") {
+            distinctValues.add(value);
+          }
+        }
+      });
+      
+      // Sort values (numerical or alphabetical)
+      const sortedValues = Array.from(distinctValues).sort((a, b) => {
+        // Try to compare as numbers first
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        // Otherwise compare as strings
+        return a.localeCompare(b);
+      });
+      
+      // Create a mapping from values to colors
+      const colorMap = {};
+      sortedValues.forEach((value, index) => {
+        colorMap[value] = getGradientColor(index, sortedValues.length);
+      });
+      
+      // Apply colors to all visible wells
+      // 96-well plates
+      getVisiblePlate96Ids().forEach(plateId => {
+        const plate = plate96wData[plateId];
+        for (const wellId in plate) {
+          const cell = document.querySelector(`td.well[data-plate="${plateId}"][data-well="${wellId}"]`);
+          const value = plate[wellId][layer];
+          if (cell && value && value.trim() !== "") {
+            cell.style.backgroundColor = colorMap[value];
+          } else if (cell) {
+            cell.style.backgroundColor = "";
+          }
+        }
+      });
+      
+      // 384-well plates
+      getVisiblePlate384Ids().forEach(plateId => {
+        const plate = plate384wData[plateId];
+        for (const wellId in plate) {
+          const cell = document.querySelector(`td.well[data-plate="${plateId}"][data-well="${wellId}"]`);
+          const value = plate[wellId][layer];
+          if (cell && value && value.trim() !== "") {
+            cell.style.backgroundColor = colorMap[value];
+          } else if (cell) {
+            cell.style.backgroundColor = "";
+          }
+        }
+      });
+      
+      // Update the button text
+      const deselectAllButton = document.getElementById("deselectAllButton");
+      deselectAllButton.innerHTML = '<i class="fa fa-th"></i> Hide Viz';
+    }
+
     function addSelectionHandlers(table) {
-      // Modified cell click handler with shift+click rectangle selection.
+      // Track mouse state for drag selection
+      let isDragging = false;
+      let startCell = null;
+      let startWasSelected = false;
+      let lastHoveredCell = null;
+      
+      // Add handler to exit metadata overlay mode on well clicks
+      table.querySelectorAll("td.well, th").forEach(cell => {
+        cell.addEventListener("mousedown", function(event) {
+          if (isMetadataOverlayMode) {
+            exitMetadataOverlayMode();
+            // Don't proceed with selection on this click - requires a new click
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+          }
+        }, true); // Use capturing phase
+      });
+      
+      // Helper function to get all cells in a rectangle between two cells
+      function getCellsInRectangle(cell1, cell2) {
+        let plateId = cell1.getAttribute("data-plate");
+        let well1 = cell1.getAttribute("data-well");
+        let well2 = cell2.getAttribute("data-well");
+        
+        let rows, cols;
+        if (plateId.includes("96w")) { 
+          rows = rows96; 
+          cols = cols96; 
+        } else { 
+          rows = rows384; 
+          cols = cols384; 
+        }
+        
+        let match1 = well1.match(/^([A-Z]+)([0-9]+)$/);
+        let match2 = well2.match(/^([A-Z]+)([0-9]+)$/);
+        
+        if (!match1 || !match2) return [];
+        
+        let startRow = match1[1], startCol = match1[2];
+        let endRow = match2[1], endCol = match2[2];
+        let startRowIndex = rows.indexOf(startRow);
+        let endRowIndex = rows.indexOf(endRow);
+        let startColIndex = cols.indexOf(startCol);
+        let endColIndex = cols.indexOf(endCol);
+        
+        // Ensure start indices are <= end indices
+        let minRowIndex = Math.min(startRowIndex, endRowIndex);
+        let maxRowIndex = Math.max(startRowIndex, endRowIndex);
+        let minColIndex = Math.min(startColIndex, endColIndex);
+        let maxColIndex = Math.max(startColIndex, endColIndex);
+        
+        // Get all cells in the rectangle
+        let cellsInRect = [];
+        for (let r = minRowIndex; r <= maxRowIndex; r++) {
+          for (let c = minColIndex; c <= maxColIndex; c++) {
+            let rowLetter = rows[r];
+            let colNumber = cols[c];
+            let wellId = rowLetter + colNumber;
+            let cell = table.querySelector(`td.well[data-plate="${plateId}"][data-well="${wellId}"]`);
+            if (cell) {
+              cellsInRect.push(cell);
+            }
+          }
+        }
+        
+        return cellsInRect;
+      }
+      
+      // Add mousedown, mousemove, and mouseup events to each well cell
       table.querySelectorAll("td.well").forEach(cell => {
-        cell.addEventListener("click", function(event) {
-          let plateId = cell.getAttribute("data-plate");
-          if (event.shiftKey && lastClicked[plateId]) {
-            let lastData = lastClicked[plateId];
-            let lastWellId = lastData.wellId;
-            let currentWellId = cell.getAttribute("data-well");
-            let rows, cols;
-            if (plateId.includes("96w")) { rows = rows96; cols = cols96; }
-            else { rows = rows384; cols = cols384; }
-            let match1 = lastWellId.match(/^([A-Z]+)([0-9]+)$/);
-            let match2 = currentWellId.match(/^([A-Z]+)([0-9]+)$/);
-            if (!match1 || !match2) return;
-            let lastRow = match1[1], lastCol = match1[2];
-            let currentRow = match2[1], currentCol = match2[2];
-            let lastRowIndex = rows.indexOf(lastRow);
-            let currentRowIndex = rows.indexOf(currentRow);
-            let lastColIndex = cols.indexOf(lastCol);
-            let currentColIndex = cols.indexOf(currentCol);
-            let minRow = Math.min(lastRowIndex, currentRowIndex);
-            let maxRow = Math.max(lastRowIndex, currentRowIndex);
-            let minCol = Math.min(lastColIndex, currentColIndex);
-            let maxCol = Math.max(lastColIndex, currentColIndex);
-            let shouldSelect = lastData.selected;
-            table.querySelectorAll("td.well[data-plate='"+plateId+"']").forEach(otherCell => {
-              let well = otherCell.getAttribute("data-well");
-              let match = well.match(/^([A-Z]+)([0-9]+)$/);
-              if (!match) return;
-              let rowLetter = match[1], colNumber = match[2];
-              let rowIndex = rows.indexOf(rowLetter);
-              let colIndex = cols.indexOf(colNumber);
-              if (rowIndex >= minRow && rowIndex <= maxRow && colIndex >= minCol && colIndex <= maxCol) {
-                if (shouldSelect) {
-                  otherCell.classList.add("selected");
-                } else {
-                  otherCell.classList.remove("selected");
-                }
+        // Handle initial mouse down on a cell
+        cell.addEventListener("mousedown", function(event) {
+          // Prevent text selection during drag
+          event.preventDefault();
+          
+          // If this is a right-click, don't start dragging
+          if (event.button === 2) return;
+          
+          // Start dragging
+          isDragging = true;
+          startCell = cell;
+          startWasSelected = cell.classList.contains("selected");
+          
+          // Toggle the first cell's selection state
+          if (startWasSelected) {
+            cell.classList.remove("selected");
+          } else {
+            cell.classList.add("selected");
+          }
+        });
+        
+        // Handle mouse movement over cells
+        cell.addEventListener("mousemove", function(event) {
+          // Only process if we're in the middle of a drag operation
+          if (!isDragging || !startCell) return;
+          
+          // Prevent text selection during drag
+          event.preventDefault();
+          
+          // If this is a different cell than the last one we processed
+          if (cell !== lastHoveredCell) {
+            lastHoveredCell = cell;
+            
+            // Get all cells in the rectangle and update their selection state
+            const cellsInRect = getCellsInRectangle(startCell, cell);
+            
+            // Update all cells in the rectangle to match the starting cell's action (select or deselect)
+            cellsInRect.forEach(rectCell => {
+              if (startWasSelected) {
+                rectCell.classList.remove("selected");
+              } else {
+                rectCell.classList.add("selected");
               }
             });
-            lastClicked[plateId] = { wellId: currentWellId, selected: shouldSelect };
-          } else {
-            let isSelected = cell.classList.toggle("selected");
-            lastClicked[plateId] = { wellId: cell.getAttribute("data-well"), selected: isSelected };
           }
         });
       });
+      
+      // Add mouseup event to document to handle drag end
+      document.addEventListener("mouseup", function(event) {
+        // Only process if we were dragging
+        if (isDragging) {
+          isDragging = false;
+          startCell = null;
+          lastHoveredCell = null;
+        }
+      });
+      
+      // Add mouseleave event to table to handle case where mouse leaves the table
+      table.addEventListener("mouseleave", function(event) {
+        // Only process if we were dragging
+        if (isDragging) {
+          isDragging = false;
+          startCell = null;
+          lastHoveredCell = null;
+        }
+      });
+      
+      // We don't need a separate click handler - the mousedown already handles toggling
+      // The mouseup event will take care of resetting the drag state
+      
+      // Keep the existing header click handlers
       table.querySelectorAll("th[data-row]").forEach(th => {
         th.addEventListener("click", function() {
           let row = th.getAttribute("data-row");
@@ -1083,6 +1331,7 @@
           th.classList.toggle("selected", !allSelected);
         });
       });
+      
       table.querySelectorAll("th[data-col]").forEach(th => {
         th.addEventListener("click", function() {
           let col = th.getAttribute("data-col");
@@ -1093,6 +1342,7 @@
           th.classList.toggle("selected", !allSelected);
         });
       });
+      
       table.querySelector("th.select-all").addEventListener("click", function() {
         let cells = table.querySelectorAll("td.well");
         let allSelected = true;
@@ -1100,6 +1350,39 @@
         cells.forEach(cell => { allSelected ? cell.classList.remove("selected") : cell.classList.add("selected"); });
         this.classList.toggle("selected", !allSelected);
       });
+    }
+
+    /***** Helper Functions for Well Advancement *****/
+    function getNextWellId(plateId, currentWell) {
+      let wellOrder = [];
+      if (plateId.includes("96w")) {
+        cols96.forEach(col => { rows96.forEach(row => { wellOrder.push(row + col); }); });
+      } else if (plateId.includes("384w")) {
+        cols384.forEach(col => { rows384.forEach(row => { wellOrder.push(row + col); }); });
+      }
+      let index = wellOrder.indexOf(currentWell);
+      return (index !== -1 && index < wellOrder.length - 1) ? wellOrder[index + 1] : null;
+    }
+    function getNextWellIdRowMajor(plateId, currentWell) {
+      let wellOrder = [];
+      if (plateId.includes("96w")) {
+        rows96.forEach(row => { cols96.forEach(col => { wellOrder.push(row + col); }); });
+      } else if (plateId.includes("384w")) {
+        rows384.forEach(row => { cols384.forEach(col => { wellOrder.push(row + col); }); });
+      }
+      let index = wellOrder.indexOf(currentWell);
+      return (index !== -1 && index < wellOrder.length - 1) ? wellOrder[index + 1] : null;
+    }
+    function getPlateWellOrder(plateId, orderType) {
+      let order = [];
+      if (plateId.includes("96w")) {
+        if (orderType === "row") { rows96.forEach(row => { cols96.forEach(col => { order.push(row + col); }); }); }
+        else { cols96.forEach(col => { rows96.forEach(row => { order.push(row + col); }); }); }
+      } else if (plateId.includes("384w")) {
+        if (orderType === "row") { rows384.forEach(row => { cols384.forEach(col => { order.push(row + col); }); }); }
+        else { cols384.forEach(col => { rows384.forEach(row => { order.push(row + col); }); }); }
+      }
+      return order;
     }
 
     /***** Utility Functions for CSV Export *****/
@@ -1160,39 +1443,6 @@
         if (metaIncluded["metadata_" + i]) included.push("metadata_" + i);
       }
       return included;
-    }
-
-    /***** Helper Functions for Well Advancement *****/
-    function getNextWellId(plateId, currentWell) {
-      let wellOrder = [];
-      if (plateId.includes("96w")) {
-        cols96.forEach(col => { rows96.forEach(row => { wellOrder.push(row + col); }); });
-      } else if (plateId.includes("384w")) {
-        cols384.forEach(col => { rows384.forEach(row => { wellOrder.push(row + col); }); });
-      }
-      let index = wellOrder.indexOf(currentWell);
-      return (index !== -1 && index < wellOrder.length - 1) ? wellOrder[index + 1] : null;
-    }
-    function getNextWellIdRowMajor(plateId, currentWell) {
-      let wellOrder = [];
-      if (plateId.includes("96w")) {
-        rows96.forEach(row => { cols96.forEach(col => { wellOrder.push(row + col); }); });
-      } else if (plateId.includes("384w")) {
-        rows384.forEach(row => { cols384.forEach(col => { wellOrder.push(row + col); }); });
-      }
-      let index = wellOrder.indexOf(currentWell);
-      return (index !== -1 && index < wellOrder.length - 1) ? wellOrder[index + 1] : null;
-    }
-    function getPlateWellOrder(plateId, orderType) {
-      let order = [];
-      if (plateId.includes("96w")) {
-        if (orderType === "row") { rows96.forEach(row => { cols96.forEach(col => { order.push(row + col); }); }); }
-        else { cols96.forEach(col => { rows96.forEach(row => { order.push(row + col); }); }); }
-      } else if (plateId.includes("384w")) {
-        if (orderType === "row") { rows384.forEach(row => { cols384.forEach(col => { order.push(row + col); }); }); }
-        else { cols384.forEach(col => { rows384.forEach(row => { order.push(row + col); }); }); }
-      }
-      return order;
     }
 
     /***** The Memory Usage (formerly Rat Cache) *****/
@@ -1732,6 +1982,15 @@
           advanceOrder = event.shiftKey ? "row" : "column";
           document.getElementById("assignButton").click();
         }
+      }
+    });
+    
+    /***** Deselect All / Visualize Button Handler *****/
+    document.getElementById("deselectAllButton").addEventListener("click", function() {
+      if (isMetadataOverlayMode) {
+        exitMetadataOverlayMode();
+      } else {
+        applyMetadataVisualization();
       }
     });
     
