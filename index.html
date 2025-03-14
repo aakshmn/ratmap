@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RatMap v0.2</title>
+  <title>RatMap v0.3</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script>
     // Disable right-click
@@ -517,13 +517,13 @@
       background-color: white;
       border-radius: var(--border-radius);
       box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      width: 90%;
-      max-width: 600px;
-      max-height: 80vh;
+      width: 85%;
+      max-width: 800px; /* Reduced from 900px */
+      max-height: 80vh; /* Reduced height */
       overflow-y: auto;
       z-index: 1000;
       display: none;
-      padding: 1.5rem;
+      padding: 1rem 1.5rem; /* Reduced padding */
     }
     
     .shortcuts-popup.active {
@@ -549,16 +549,16 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem; /* Reduced margin */
+      padding-bottom: 0.5rem; /* Reduced padding */
       border-bottom: 1px solid var(--gray-200);
     }
     
     .shortcuts-title {
-      font-size: 1.2rem;
+      font-size: 1.2rem; /* Reduced from 1.4rem */
       font-weight: 600;
-      color: var(--primary);
       margin: 0;
+      color: var(--primary);
     }
     
     .shortcuts-close {
@@ -566,8 +566,8 @@
       border: none;
       color: var(--gray-600);
       cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0.25rem;
+      font-size: 1.1rem; /* Reduced from 1.2rem */
+      padding: 0.2rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -579,19 +579,21 @@
     }
     
     .shortcuts-section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem; /* Reduced from 2rem */
+      padding-bottom: 0.25rem; /* Reduced padding */
     }
     
     .shortcuts-section-title {
-      font-size: 1rem;
+      font-size: 0.95rem; /* Reduced from 1.1rem */
       font-weight: 600;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem; /* Reduced from 0.75rem */
       color: var(--secondary);
     }
     
     .shortcuts-table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
     }
     
     .shortcuts-table tr:nth-child(odd) {
@@ -599,25 +601,35 @@
     }
     
     .shortcuts-table td {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.9rem;
+      padding: 0.5rem 0.75rem; /* Reduced from 0.75rem 1rem */
+      font-size: 0.8rem; /* Reduced from 0.95rem */
       border-bottom: 1px solid var(--gray-200);
+      line-height: 1.4; /* Reduced from 1.5 */
+      vertical-align: middle; /* Changed from top to middle */
     }
     
     .shortcuts-table td:first-child {
       font-weight: 500;
       white-space: nowrap;
+      width: 38%; /* Slightly increased to accommodate keys */
+    }
+    
+    .shortcuts-table td:last-child {
+      width: 62%;
     }
     
     .key {
       display: inline-block;
-      background-color: var(--gray-200);
-      border-radius: 4px;
-      padding: 0.1rem 0.4rem;
-      margin: 0 0.1rem;
-      font-size: 0.85rem;
+      background-color: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: 3px; /* Reduced from 4px */
+      padding: 0.1rem 0.35rem; /* Reduced padding */
+      margin: 0 0.1rem; /* Reduced margin */
+      font-size: 0.8rem; /* Reduced from 0.9rem */
       font-family: monospace;
-      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1); /* Reduced shadow */
+      min-width: 1.25rem; /* Reduced from 1.5rem */
+      text-align: center;
     }
 
     /* Export button - more compact */
@@ -993,40 +1005,28 @@
       <h4 class="shortcuts-section-title">General Controls</h4>
       <table class="shortcuts-table">
         <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">L</span> or <span class="key">M</span></td>
-          <td>Focus and select the metadata value input</td>
-        </tr>
-        <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">S</span></td>
-          <td>Focus the Source dropdown</td>
-        </tr>
-        <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">D</span></td>
-          <td>Focus the Destination dropdown</td>
-        </tr>
-        <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">O</span></td>
-          <td>Focus the 96-well plates Export button</td>
-        </tr>
-        <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">P</span></td>
-          <td>Focus the 384-well plates Export button</td>
-        </tr>
-        <tr>
           <td><span class="key">Ctrl</span> + <span class="key">S</span></td>
-          <td>Save all data (Mac: <span class="key">⌘</span> + <span class="key">S</span>)</td>
+          <td>Save data (<span class="key">⌘</span> + <span class="key">S</span> on Mac)</td>
         </tr>
         <tr>
           <td><span class="key">Ctrl</span> + <span class="key">O</span></td>
-          <td>Load saved data (Mac: <span class="key">⌘</span> + <span class="key">O</span>)</td>
+          <td>Load data (<span class="key">⌘</span> + <span class="key">O</span> on Mac)</td>
         </tr>
         <tr>
           <td><span class="key">Ctrl</span> + <span class="key">/</span></td>
-          <td>Toggle this shortcuts help (Mac: <span class="key">⌘</span> + <span class="key">/</span>)</td>
+          <td>Toggle shortcuts help (<span class="key">⌘</span> + <span class="key">/</span> on Mac)</td>
         </tr>
         <tr>
           <td><span class="key">Esc</span></td>
-          <td>Close shortcuts help popup</td>
+          <td>Close popup / <span class="key">Ctrl</span>+<span class="key">Esc</span> to deselect all wells</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">L/M</span></td>
+          <td>Focus metadata input</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">S/D</span></td>
+          <td>Focus Source/Destination dropdowns</td>
         </tr>
       </table>
     </div>
@@ -1035,16 +1035,16 @@
       <h4 class="shortcuts-section-title">Plate Toggling</h4>
       <table class="shortcuts-table">
         <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">1</span> - <span class="key">8</span></td>
-          <td>Toggle 96-well plates P01 through P08 (Mac: <span class="key">⌘</span> + <span class="key">Option</span>)</td>
+          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">1-8</span></td>
+          <td>Toggle 96-well plates (<span class="key">⌘</span> + <span class="key">Option</span> on Mac)</td>
         </tr>
         <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">9</span> - <span class="key">0</span></td>
-          <td>Toggle 384-well plates P01 and P02 (Mac: <span class="key">⌘</span> + <span class="key">Option</span>)</td>
+          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">9-0</span></td>
+          <td>Toggle 384-well plates (<span class="key">⌘</span> + <span class="key">Option</span> on Mac)</td>
         </tr>
         <tr>
-          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">Shift</span> + <span class="key">1</span> - <span class="key">0</span></td>
-          <td>Select all wells in the corresponding plate (Mac: <span class="key">⌘</span> + <span class="key">Option</span> + <span class="key">Shift</span>)</td>
+          <td><span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">Shift</span> + <span class="key">#</span></td>
+          <td>Select all wells in corresponding plate</td>
         </tr>
       </table>
     </div>
@@ -1053,16 +1053,19 @@
       <h4 class="shortcuts-section-title">Metadata Assignment</h4>
       <table class="shortcuts-table">
         <tr>
-          <td><span class="key">Enter</span></td>
-          <td>Assign value to selected well(s) in column-major order</td>
+          <td><span class="key">Ctrl</span> + <span class="key">#</span></td>
+          <td>Jump to Metadata Layer 1-9 (<span class="key">⌘</span> + <span class="key">#</span> on Mac)</td>
         </tr>
         <tr>
-          <td><span class="key">Shift</span> + <span class="key">Enter</span></td>
-          <td>Assign value to selected well(s) in row-major order</td>
+          <td><span class="key">Enter</span></td>
+          <td>Assign value (column-major) / <span class="key">Shift</span>+<span class="key">Enter</span> (row-major)</td>
         </tr>
         <tr>
           <td><span class="key">Shift</span> + <span class="key">Alt</span> + <span class="key">Enter</span></td>
-          <td>Rename the current layer (Mac: <span class="key">Shift</span> + <span class="key">Option</span> + <span class="key">Enter</span>)</td>
+          <td>Rename current layer</td>
+        </tr>
+        <tr>
+          <td colspan="2"><em>Tip: For lists, use comma/space separated values (e.g., "a, b, c" or "1 2 3" without quotes.)</em></td>
         </tr>
       </table>
     </div>
@@ -2352,6 +2355,36 @@
         e.preventDefault();
         closeShortcutsPopup();
         return;
+      }
+      
+      // Deselect all wells with Cmd/Ctrl + Escape
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.key === 'Escape') {
+        e.preventDefault();
+        clearAllSelections();
+        return;
+      }
+      
+      // Jump to metadata layers with Cmd/Ctrl + 1-9
+      if ((isMac ? e.metaKey : e.ctrlKey) && !e.altKey && !e.shiftKey) {
+        // Check if key is a number between 1-9
+        const keyNum = parseInt(e.key);
+        if (!isNaN(keyNum) && keyNum >= 1 && keyNum <= 9) {
+          e.preventDefault();
+          const layerDropdown = document.getElementById("layerDropdown");
+          const layerValue = "metadata_" + keyNum;
+          if (layerDropdown) {
+            layerDropdown.value = layerValue;
+            // Trigger a change event to ensure any needed updates occur
+            layerDropdown.dispatchEvent(new Event('change', { bubbles: true }));
+            // Focus the metadata value input for immediate editing
+            const metadataInput = document.getElementById("metadataValue");
+            if (metadataInput) {
+              metadataInput.focus();
+              metadataInput.select();
+            }
+          }
+          return;
+        }
       }
       
       // Plate toggling: Ctrl/Cmd + Alt [+ Shift] + [Digit]
