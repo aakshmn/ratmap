@@ -1,10 +1,6 @@
 # RatMap v0.3  
 *An opinionated plate mapping tool for filthy festering lab rats.* 💩🐀  
 
-**➡️ [Use RatMap online now!](https://aakshmn.github.io/ratmap/)**
-
-![RatMap Interface](https://github.com/aakshmn/ratmap/assets/123102900/fa6290b7-faeb-409d-8b9f-8e5d14d18e59)
-
 ---
 
 ## Table of Contents
@@ -23,9 +19,6 @@
 ## Introduction
 Welcome, you scurrying, smelly lab rat! If you're reading this, it's clear you're one of those filthy, wretched creatures whose data is as disorganized as your personal hygiene. Fear not—RatMap is here to help you sort out your experimental mess, one well at a time. Now, get off your paws and start mapping!
 
----
-
-## Overview
 RatMap is a web-based tool designed to help you map and manage your 96-well and 384-well plate data with precision. With features like metadata layer management, CSV export, and interactive quadrant mapping, this app is as nimble as a rat on the lam. Even if you're as dirty as the rest of your scavenging brethren, this tool will help you keep your data from becoming a total catastrophe.
 
 ---
@@ -34,7 +27,6 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 
 ### Requirements
 - **Modern Web Browser:** RatMap runs best on modern browsers that comfortably handle up to 200MB of data.
-- **No Password Required:** Password protection has been removed for easier access.
 
 ### Video Walkthrough
 A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older version, the functionality and principles still hold. There are chapters so that you can jump to topics of interest.
