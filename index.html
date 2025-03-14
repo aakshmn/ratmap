@@ -65,7 +65,7 @@
       width: 100%;
       max-width: 100%;
       margin: 0 auto;
-      padding: 0.75rem;
+      padding: 0.75rem 0.75rem 0.25rem 0.75rem; /* Reduced bottom padding */
     }
 
     /* Header styling - simplified horizontal layout */
@@ -299,9 +299,23 @@
       }
     }
     
+    /* Media query for different screen heights */
+    @media (max-height: 768px) {
+      .plate-section .card {
+        height: calc(92vh - 50px); /* Slightly reduced height for smaller screens */
+      }
+    }
+    
+    /* Media query for very small screens */
+    @media (max-height: 600px) {
+      .plate-section .card {
+        height: calc(88vh - 50px); /* Further reduced height for very small screens */
+      }
+    }
+    
     /* Enhanced scrolling for plate sections */
     .plate-section .card {
-      height: calc(80vh - 50px); /* Fixed height to enable proper scrolling */
+      height: calc(95vh - 50px); /* Increased from 80vh to 95vh to fill more vertical space */
       display: flex;
       flex-direction: column;
     }
@@ -334,7 +348,7 @@
     /* Plate sections with proper scrolling for panning */
     .plate-section {
       width: 100%;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem; /* Reduced from 1rem to make cards closer to the bottom of the window */
       display: none; /* Hidden by default, shown based on checkbox selection */
     }
 
@@ -1688,6 +1702,9 @@
             label.classList.remove('active');
           }
         });
+
+        // Sort plates in numerical order
+        sortPlatesByID('plate96wContainer');
       } else {
         section96w.classList.remove('active');
       }
@@ -1702,6 +1719,9 @@
             label.classList.remove('active');
           }
         });
+
+        // Sort plates in numerical order
+        sortPlatesByID('plate384wContainer');
       } else {
         section384w.classList.remove('active');
       }
@@ -1714,6 +1734,38 @@
       
       // Equalize dimensions after a short delay to ensure DOM is updated
       setTimeout(equalizeTableDimensions, 100);
+    }
+
+    // Function to sort plates by their ID in the container
+    function sortPlatesByID(containerId) {
+      const container = document.getElementById(containerId);
+      const plates = Array.from(container.children);
+      
+      if (plates.length <= 1) return; // No need to sort if there's only one plate or none
+      
+      // Sort plates by their ID
+      plates.sort((a, b) => {
+        const idA = a.id;
+        const idB = b.id;
+        
+        // Extract the plate number (e.g., from P01_96w get 01)
+        // This regex matches one or more digits after P
+        const numA = idA.match(/P(\d+)_/)[1];
+        const numB = idB.match(/P(\d+)_/)[1];
+        
+        // Convert to integers for correct numerical sorting (e.g., P10 comes after P09)
+        return parseInt(numA, 10) - parseInt(numB, 10);
+      });
+      
+      // Remove all plates from the container
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      
+      // Add the plates back in sorted order
+      plates.forEach(plate => {
+        container.appendChild(plate);
+      });
     }
 
     /***** Button Handlers *****/
@@ -2173,6 +2225,9 @@
           tableContainer.appendChild(table);
           plateDiv.appendChild(tableContainer);
           container.appendChild(plateDiv);
+          
+          // Sort plates immediately after adding a new one
+          sortPlatesByID('plate96wContainer');
         } else {
           let plateDiv = document.getElementById(plateId);
           if (plateDiv) plateDiv.remove();
@@ -2208,6 +2263,9 @@
           tableContainer.appendChild(table);
           plateDiv.appendChild(tableContainer);
           container.appendChild(plateDiv);
+          
+          // Sort plates immediately after adding a new one
+          sortPlatesByID('plate384wContainer');
         } else {
           let plateDiv = document.getElementById(plateId);
           if (plateDiv) plateDiv.remove();
@@ -2476,6 +2534,10 @@
             // Update the display
             updateAllDisplayedCells();
             updateRatCache();
+            
+            // Sort plates after loading data
+            sortPlatesByID('plate96wContainer');
+            sortPlatesByID('plate384wContainer');
             
             // Equalize plate dimensions after loading data
             setTimeout(equalizeTableDimensions, 200);
