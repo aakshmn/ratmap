@@ -79,6 +79,7 @@ A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older
 - **Save and Load:**
   - Save your current plate configuration and metadata for later use
   - Load previously saved data to continue your work
+  - **Example Data:** Try loading this [example data file](https://github.com/aakshmn/ratmap/blob/main/ratmap_data_20250314.json) to see a pre-configured plate setup
 - **Undo Functionality:**  
   - One-level undo to revert accidental changes using the Undo button
 - **Keyboard Shortcuts Help:**
