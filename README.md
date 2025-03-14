@@ -10,10 +10,9 @@
 4. [Key Features](#key-features)  
 5. [Using RatMap](#using-ratmap)  
 6. [Keyboard Shortcuts](#keyboard-shortcuts)  
-7. [Memory Usage & Data Management](#memory-usage--data-management)  
-8. [Troubleshooting & Pro Tips](#troubleshooting--pro-tips)  
-9. [Security & Privacy](#security--privacy)  
-10. [Credits](#credits)
+7. [Troubleshooting & Pro Tips](#troubleshooting--pro-tips)  
+8. [Security & Privacy](#security--privacy)  
+9. [Credits](#credits)
 
 ---
 
@@ -85,8 +84,6 @@ A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older
   - **Experiment ID:** You can now provide an optional Experiment ID during export or skip it by leaving it blank.
 - **Undo Functionality:**  
   - One-level undo to revert accidental changes using the Undo button.
-- **Memory Monitoring:**  
-  - A memory usage indicator helps you keep track of your session's memory usage.
 - **Keyboard Shortcuts Help:**
   - Press Ctrl/⌘ + / to view a comprehensive list of available keyboard shortcuts.
 
@@ -112,7 +109,6 @@ The updated interface (v0.2) has been reorganized for better efficiency:
     - Source plate selection
     - Destination quadrant selection
     - Map, Undo, and Empty buttons
-    - Memory usage indicator
 
 - **Plate Sections:**
   - **96-well Plates:** 
@@ -163,18 +159,6 @@ The app now features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view
 | Enter | Assign value to selected well(s) in column-major order |
 | Shift + Enter | Assign value to selected well(s) in row-major order |
 | Shift + Alt/Option + Enter | Rename the current layer |
-
----
-
-## Memory Usage & Data Management
-- **Memory Usage Indicator:**  
-  - Displays the current memory usage of your session in KB or MB.  
-  - **Warning:**  
-    - At 200MB, a warning is triggered. While modern browsers can handle this load, it's advisable to clear unnecessary data if you see this warning.  
-    - **Empty Action:** Clicking the **Empty 🤮** button will clear **all metadata** from selected wells.  
-    - Also, be aware that browser actions such as refresh, back, or forward will erase all metadata. The app now has a confirmation dialog when attempting to leave the page.
-  
-*Don't let your data hoard become a trap—regular purges keep the system squeaking along nicely, unlike your sorry excuse for lab hygiene.*
 
 ---
 

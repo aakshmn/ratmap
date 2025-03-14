@@ -15,6 +15,9 @@
     window.onload = function () {
       // Initialize the visibility of plate sections based on checkboxes
       updatePlateVisibility();
+      
+      // Apply initial visualization
+      applyMetadataVisualization();
     };
   </script>
   <style>
@@ -65,25 +68,68 @@
       padding: 0.75rem;
     }
 
+    /* Header styling - simplified horizontal layout */
     .top-section {
       display: flex;
-      justify-content: space-between;
+      margin-bottom: 0.4rem;
+      align-items: flex-start;
+    }
+
+    .header-left {
+      flex: 1;
+      padding-right: 1rem;
+      max-width: 60%;
+    }
+
+    .header-right {
+      display: flex;
       align-items: center;
-      margin-bottom: 0.75rem;
+      gap: 0.75rem;
     }
 
     .subheader {
       color: var(--gray-700);
       font-size: 0.9rem;
+      line-height: 1.4;
       text-align: left;
-      padding: 0.5rem 0;
-      flex: 1;
+      padding: 0;
+      margin: 0;
     }
 
     .subheader strong {
       font-style: normal;
       font-weight: 600;
       color: var(--primary);
+    }
+
+    /* Save/Load buttons aligned with toggles */
+    .save-load-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .save-load-buttons button {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* Plates selection in a single row */
+    .plates-selection-section {
+      display: flex;
+    }
+
+    .plates-selection-content {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .plates-selection-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
     }
 
     a {
@@ -125,8 +171,8 @@
 
     .controls-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 0.5rem;
+      grid-template-columns: minmax(180px, 1fr) minmax(90px, 0.5fr) minmax(200px, 1.2fr) minmax(90px, 0.5fr) minmax(90px, 0.5fr) minmax(90px, 0.5fr) minmax(70px, 0.4fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(90px, 0.5fr);
+      gap: 0.4rem;
       align-items: center;
     }
 
@@ -138,26 +184,15 @@
 
     .control-item > * {
       min-width: 0;
-    }
-
-    .control-item.dropdown {
-      flex: 1.5;
-    }
-    
-    .control-item.text-input {
-      flex: 3.2;
-    }
-    
-    .control-item.button {
-      flex: 0.8;
+      width: 100%;
     }
 
     .control-label {
       font-size: 0.75rem;
       color: var(--gray-600);
       white-space: nowrap;
-      margin-right: 0.1rem;
-      min-width: 2rem;
+      display: inline-block;
+      margin-right: 0.25rem;
     }
 
     /* Form controls */
@@ -175,6 +210,13 @@
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Make the assign, clear, and empty buttons more compact */
+    #assignButton, #clearButton, #clearAllButton,
+    #mapButton, #undoButton {
+      padding: 0.3rem 0.5rem;
+      white-space: nowrap;
     }
 
     /* Buttons */
@@ -236,57 +278,60 @@
       padding: 0.3rem 0.5rem;
     }
 
-    /* Plates selection section - made more compact */
-    .plates-selection-section {
-      flex: 1;
-    }
-
-    .plates-selection-content {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-    
-    .plates-selection-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-right: 0.5rem;
-    }
-
-    .plate-checkbox-label {
-      display: inline-flex;
-      align-items: center;
-      margin-right: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: var(--border-radius);
-      background-color: var(--gray-100);
-      transition: var(--transition);
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-
-    .plate-checkbox-label:hover {
-      background-color: var(--gray-200);
-    }
-
-    .plate-checkbox-label.active {
-      background-color: rgba(67, 97, 238, 0.1);
-      color: var(--primary);
-    }
-
-    .plate-checkbox-label input {
-      margin-right: 0.3rem;
-      width: auto;
-    }
-
-    /* Plate containers */
+    /* Plate containers with enhanced scrolling */
     .plates-container {
       display: flex;
       flex-direction: column;
       width: 100%;
     }
+    
+    /* Media query for wide screens - show 96w and 384w side by side */
+    @media (min-width: 1600px) {
+      .plates-container {
+        flex-direction: row;
+        gap: 1rem;
+      }
+      
+      .plate-section {
+        flex: 1;
+        max-width: 50%;
+        width: 50%;
+      }
+    }
+    
+    /* Enhanced scrolling for plate sections */
+    .plate-section .card {
+      height: calc(80vh - 50px); /* Fixed height to enable proper scrolling */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header is fixed, body scrolls */
+    .plate-section .card-body {
+      flex: 1;
+      overflow: auto;
+      padding: 0.75rem;
+      scrollbar-width: thin; /* Firefox */
+      -ms-overflow-style: -ms-autohiding-scrollbar; /* IE/Edge */
+      max-height: none; /* Remove conflicting max-height */
+    }
+    
+    /* Webkit scrollbar styling */
+    .plate-section .card-body::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    .plate-section .card-body::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+    
+    .plate-section .card-body::-webkit-scrollbar-track {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
 
+    /* Plate sections with proper scrolling for panning */
     .plate-section {
       width: 100%;
       margin-bottom: 1rem;
@@ -296,26 +341,20 @@
     .plate-section.active {
       display: block;
     }
-
-    .plate-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem;
-      background-color: rgba(67, 97, 238, 0.05);
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .plate-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--secondary);
-      margin: 0;
-      flex: 1;
-    }
-
+    
+    /* Plate wrapper and title */
     .plate-wrapper {
       margin-bottom: 1.5rem;
+      width: 100%;
+      min-width: 650px; /* Ensure tables have minimum width for scrolling */
+    }
+    
+    .plate-wrapper h3 {
+      font-size: 0.85rem;
+      margin-bottom: 0.4rem;
+      text-align: left;
+      color: var(--secondary);
+      padding-left: 0;
     }
     
     /* Two-column layout for 96-well plates */
@@ -323,6 +362,7 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
+      min-width: min-content;
     }
     
     /* Ensure one column on mobile */
@@ -331,53 +371,82 @@
         grid-template-columns: 1fr;
       }
     }
-
-    .plate-table-container {
+    
+    /* Card bodies containing plates should be scrollable for panning */
+    .plate-section .card-body {
+      padding: 0.75rem;
       overflow: auto;
-      margin-bottom: 0.5rem;
-      /* Increased max height by 25% */
-      max-height: 1000px;
+      max-height: none; /* Remove conflicting max-height */
     }
     
-    /* Double max height for 384-well plates */
-    #section384w .plate-table-container {
-      max-height: 2000px;
+    /* Plate table container - allow panning within parent */
+    .plate-table-container {
+      overflow: visible; /* Remove auto overflow to enable parent scrolling */
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
     }
-
+    
+    /* Table styling for panning */
     .plateTable {
       border-collapse: collapse;
-      width: auto;
+      width: 100%;
       margin-bottom: 0.5rem;
+      table-layout: fixed; /* For consistent cell sizing */
     }
-
-    .plateTable th, .plateTable td {
-      /* Increased contrast for gridlines */
-      border: 1px solid var(--gray-400);
+    
+    /* Set minimum dimensions for cells to ensure consistent sizes */
+    .plateTable[data-plate$="96w"] th,
+    .plateTable[data-plate$="96w"] td {
+      min-width: 40px;
+      min-height: 40px;
+      width: 40px;
+      height: 40px;
+      max-width: 120px; /* Allow expansion but with max width */
+    }
+    
+    .plateTable[data-plate$="384w"] th,
+    .plateTable[data-plate$="384w"] td {
       min-width: 36px;
+      min-height: 36px;
+      width: 36px;
       height: 36px;
+      max-width: 100px; /* Allow expansion but with max width */
+    }
+    
+    /* Make all tables in the same container have the same width */
+    #plate96wContainer .plateTable,
+    #plate384wContainer .plateTable {
+      width: 100%;
+    }
+    
+    .plateTable th, .plateTable td {
+      border: 1px solid var(--gray-400);
       text-align: center;
       font-size: 0.7rem;
-      padding: 2px;
-      white-space: nowrap;
+      padding: 4px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      height: 100%;
     }
-
+    
+    /* Adjust header styling - remove sticky positioning for panning */
     .plateTable th {
       background-color: var(--gray-100);
       font-weight: 600;
       cursor: pointer;
       user-select: none;
       transition: var(--transition);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      position: relative; /* Changed from sticky to enable panning */
+      z-index: 2;
     }
-
+    
     .plateTable th:first-child {
-      position: sticky;
-      left: 0;
-      z-index: 20;
+      position: relative; /* Changed from sticky to enable panning */
+      z-index: 3;
     }
-
+    
     .plateTable th:hover {
       background-color: var(--gray-200);
     }
@@ -395,18 +464,24 @@
 
     .plateTable .selected {
       background-color: rgba(67, 97, 238, 0.2) !important;
+      outline: 2px solid rgba(67, 97, 238, 0.8) !important;
+      outline-offset: -2px;
     }
 
     /* Well content styling */
     .well-id {
       font-weight: bold;
-      font-size: 0.65rem;
-      color: var(--gray-600);
+      color: var(--gray-800);
+      margin-bottom: 2px;
     }
-
+    
     .metadata {
+      color: var(--gray-700);
       font-size: 0.65rem;
-      overflow: visible;
+      line-height: 1.3;
+      white-space: normal;
+      word-break: break-word;
+      text-align: left;
     }
 
     /* Memory usage */
@@ -534,7 +609,8 @@
     /* Export button - more compact */
     .export-btn {
       width: auto;
-      min-width: 110px;
+      min-width: 130px;
+      font-size: 0.85rem;
     }
 
     /* Utility */
@@ -575,6 +651,24 @@
     }
 
     /* Responsive layout for the controls */
+    @media (max-width: 1200px) {
+      .controls-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-rows: auto auto;
+        grid-auto-flow: row;
+      }
+      
+      .control-item.text-input {
+        grid-column: 1 / -1;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .plates-selection-group {
+        flex-wrap: wrap;
+      }
+    }
+    
     @media (max-width: 768px) {
       .controls-grid {
         grid-template-columns: 1fr;
@@ -584,8 +678,28 @@
         flex-direction: column;
       }
       
-      .subheader, .plates-selection-section {
+      .header-left {
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+      }
+      
+      .header-right {
+        flex-direction: column;
         width: 100%;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      .plates-selection-section {
+        width: 100%;
+      }
+      
+      .plates-selection-content {
+        flex-wrap: wrap;
+      }
+      
+      .save-load-buttons {
+        margin-bottom: 0.5rem;
       }
     }
     
@@ -596,55 +710,170 @@
       -moz-user-select: none;
       -ms-user-select: none;
     }
+
+    /* Mapping controls on a second row */
+    .mapping-controls {
+      display: grid;
+      grid-template-columns: minmax(80px, 0.8fr) minmax(200px, 1.5fr) minmax(80px, 0.8fr) minmax(200px, 1.5fr) minmax(100px, 0.6fr) minmax(100px, 0.6fr) minmax(100px, 0.5fr);
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .mapping-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      white-space: nowrap;
+      margin-right: 0.1rem;
+    }
+
+    /* Plate header styling */
+    .plate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      background-color: rgba(67, 97, 238, 0.05);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .plate-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--secondary);
+      margin: 0;
+      flex: 1;
+    }
+
+    /* Make the buttons more compact */
+    #saveDataButton, #loadDataButton, 
+    #export96Button, #export384Button {
+      padding: 0.3rem 0.6rem;
+      white-space: nowrap;
+    }
+
+    /* Cell content styling */
+    .well-content {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-wrap: break-word;
+      line-height: 1.2;
+    }
+
+    /* Plate checkbox styles */
+    .plate-checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.3rem;
+      border-radius: var(--border-radius);
+      background-color: var(--gray-100);
+      transition: var(--transition);
+      cursor: pointer;
+      font-size: 0.7rem;
+      user-select: none;
+      margin-bottom: 0;
+    }
+
+    .plate-checkbox-label:hover {
+      background-color: var(--gray-200);
+    }
+
+    .plate-checkbox-label.active {
+      background-color: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .plate-checkbox-label input {
+      margin-right: 0.2rem;
+      width: auto;
+      height: 0.8rem;
+    }
+
+    /* Equal width for source and destination dropdowns */
+    #srcPlateSelect, #destQuadSelect {
+      width: 100%;
+      min-width: 180px;
+    }
+
+    /* Set minimum table dimensions to ensure scrollability */
+    #plate96wContainer, #plate384wContainer {
+      min-width: min-content;
+    }
+    
+    /* Adjust table dimensions to ensure they remain visible during scrolling */
+    .plateTable {
+      margin: 0;
+      border: 1px solid var(--gray-300);
+    }
+    
+    /* Ensure scroll containers have proper dimensions */
+    .plate-table-container {
+      min-width: fit-content;
+      margin: 0 0 1rem 0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Reorganized top section with tagline and plate toggles side by side -->
+    <!-- Header section -->
     <div class="top-section">
-      <div class="subheader">
-        <strong>RatMap (v0.2).</strong> An opinionated plate mapping tool for filthy festering lab rats. 
-        💩🐀 Created by <a href="https://github.com/aakshmn" target="_blank">aakshmn</a>. 
-        (<a href="https://github.com/aakshmn/ratmap/blob/main/README.md" target="_blank">README</a>)
+      <div class="header-left">
+        <div class="subheader">
+          <strong>RatMap (v0.2).</strong> An opinionated plate mapping tool for filthy festering lab rats. 💩🐀 Created by <a href="https://github.com/aakshmn" target="_blank">aakshmn</a>. 
+          (<a href="https://github.com/aakshmn/ratmap/blob/main/README.md" target="_blank">README</a>)
+        </div>
       </div>
       
-      <!-- Plate Selection Section - moved above assignment controls and made more compact -->
-      <div class="plates-selection-section">
-        <div class="plates-selection-content">
-          <div class="plates-selection-group">
-            <label class="plate-checkbox-label" data-plate="P01_96w">
-              <input type="checkbox" value="P01_96w" class="plate96wCheckbox"> P01_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P02_96w">
-              <input type="checkbox" value="P02_96w" class="plate96wCheckbox"> P02_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P03_96w">
-              <input type="checkbox" value="P03_96w" class="plate96wCheckbox"> P03_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P04_96w">
-              <input type="checkbox" value="P04_96w" class="plate96wCheckbox"> P04_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P05_96w">
-              <input type="checkbox" value="P05_96w" class="plate96wCheckbox"> P05_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P06_96w">
-              <input type="checkbox" value="P06_96w" class="plate96wCheckbox"> P06_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P07_96w">
-              <input type="checkbox" value="P07_96w" class="plate96wCheckbox"> P07_96w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P08_96w">
-              <input type="checkbox" value="P08_96w" class="plate96wCheckbox"> P08_96w
-            </label>
-          </div>
-          
-          <div class="plates-selection-group">
-            <label class="plate-checkbox-label" data-plate="P01_384w">
-              <input type="checkbox" value="P01_384w" class="plate384wCheckbox"> P01_384w
-            </label>
-            <label class="plate-checkbox-label" data-plate="P02_384w">
-              <input type="checkbox" value="P02_384w" class="plate384wCheckbox"> P02_384w
-            </label>
+      <div class="header-right">
+        <!-- Save/Load buttons first -->
+        <div class="save-load-buttons">
+          <button id="saveDataButton" class="btn btn-primary btn-sm">
+            <i class="fa fa-save"></i> Save
+          </button>
+          <button id="loadDataButton" class="btn btn-outline btn-sm">
+            <i class="fa fa-upload"></i> Load
+          </button>
+        </div>
+        
+        <!-- All toggles in a single row -->
+        <div class="plates-selection-section">
+          <div class="plates-selection-content">
+            <div class="plates-selection-group">
+              <label class="plate-checkbox-label" data-plate="P01_96w">
+                <input type="checkbox" value="P01_96w" class="plate96wCheckbox"> P01_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P02_96w">
+                <input type="checkbox" value="P02_96w" class="plate96wCheckbox"> P02_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P03_96w">
+                <input type="checkbox" value="P03_96w" class="plate96wCheckbox"> P03_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P04_96w">
+                <input type="checkbox" value="P04_96w" class="plate96wCheckbox"> P04_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P05_96w">
+                <input type="checkbox" value="P05_96w" class="plate96wCheckbox"> P05_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P06_96w">
+                <input type="checkbox" value="P06_96w" class="plate96wCheckbox"> P06_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P07_96w">
+                <input type="checkbox" value="P07_96w" class="plate96wCheckbox"> P07_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P08_96w">
+                <input type="checkbox" value="P08_96w" class="plate96wCheckbox"> P08_96w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P01_384w">
+                <input type="checkbox" value="P01_384w" class="plate384wCheckbox"> P01_384w
+              </label>
+              <label class="plate-checkbox-label" data-plate="P02_384w">
+                <input type="checkbox" value="P02_384w" class="plate384wCheckbox"> P02_384w
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -655,10 +884,10 @@
       <div class="card-body">
         <div class="controls-grid">
           <!-- Layer & Metadata Controls -->
-          <div class="control-item dropdown">
+          <div class="control-item">
             <select id="layerDropdown" title="Select metadata layer"></select>
           </div>
-          <div class="control-item button">
+          <div class="control-item">
             <button id="renameLayerButton" class="btn btn-outline btn-sm">
               <i class="fa fa-pencil"></i> Rename
             </button>
@@ -666,48 +895,37 @@
           <div class="control-item text-input">
             <input type="text" id="metadataValue" placeholder="Enter value">
           </div>
-          <div class="control-item button">
+          <div class="control-item">
             <button id="assignButton" class="btn btn-primary btn-sm">
               <i class="fa fa-check"></i> Assign
             </button>
           </div>
-          <div class="control-item button">
-            <button id="clearButton" class="btn btn-outline btn-sm">
-              <i class="fa fa-eraser"></i> Clear
-            </button>
-          </div>
-          <div class="control-item button">
-            <button id="deselectAllButton" class="btn btn-outline btn-sm">
-              <i class="fa fa-eye"></i> Visualize
-            </button>
-          </div>
-          
-          <!-- Mapping Controls -->
-          <div class="control-item dropdown">
-            <span class="control-label">Src</span>
-            <select id="srcPlateSelect"></select>
-          </div>
-          <div class="control-item dropdown">
-            <span class="control-label">Dest</span>
-            <select id="destQuadSelect"></select>
-          </div>
-          <div class="control-item button">
-            <button id="mapButton" class="btn btn-primary btn-sm">
-              <i class="fa fa-exchange-alt"></i> Map
-            </button>
-          </div>
-          <div class="control-item button">
+          <div class="control-item">
             <button id="undoButton" class="btn btn-outline btn-sm">
               <i class="fa fa-undo"></i> Undo
             </button>
           </div>
-          <div class="control-item button">
-            <button id="clearAllButton" class="btn btn-danger btn-sm">
-              <i class="fa fa-trash-alt"></i> Empty 🤮
+          <div class="control-item">
+            <button id="clearButton" class="btn btn-outline btn-sm">
+              <i class="fa fa-eraser"></i> Clear
             </button>
           </div>
           <div class="control-item">
-            <span id="memoryUsage">(0 KB)</span>
+            <button id="clearAllButton" class="btn btn-danger btn-sm">
+              <i class="fa fa-trash-alt"></i> Empty
+            </button>
+          </div>
+          <!-- Mapping Controls -->
+          <div class="control-item">
+            <select id="srcPlateSelect"></select>
+          </div>
+          <div class="control-item">
+            <select id="destQuadSelect"></select>
+          </div>
+          <div class="control-item">
+            <button id="mapButton" class="btn btn-primary btn-sm">
+              <i class="fa fa-exchange-alt"></i> Map
+            </button>
           </div>
         </div>
       </div>
@@ -721,7 +939,7 @@
           <div class="plate-header">
             <h2 class="plate-title">96-well Plates</h2>
             <button id="export96Button" class="btn btn-success btn-sm export-btn">
-              <i class="fa fa-file-export"></i> Export 🧀
+              <i class="fa fa-file-export"></i> Export CSV 🧀
             </button>
           </div>
           <div class="card-body">
@@ -736,7 +954,7 @@
           <div class="plate-header">
             <h2 class="plate-title">384-well Plates</h2>
             <button id="export384Button" class="btn btn-success btn-sm export-btn">
-              <i class="fa fa-file-export"></i> Export 🧀
+              <i class="fa fa-file-export"></i> Export CSV 🧀
             </button>
           </div>
           <div class="card-body">
@@ -779,6 +997,14 @@
         <tr>
           <td><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">P</span></td>
           <td>Focus the 384-well plates Export button</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">S</span></td>
+          <td>Save all data (Mac: <span class="key">⌘</span> + <span class="key">S</span>)</td>
+        </tr>
+        <tr>
+          <td><span class="key">Ctrl</span> + <span class="key">O</span></td>
+          <td>Load saved data (Mac: <span class="key">⌘</span> + <span class="key">O</span>)</td>
         </tr>
         <tr>
           <td><span class="key">Ctrl</span> + <span class="key">/</span></td>
@@ -828,12 +1054,15 @@
     </div>
   </div>
   
+  <!-- Hidden file input for loading data -->
+  <input type="file" id="fileInput" accept=".json" style="display:none;">
+  
   <script>
     /***** Global Data & Layer Names *****/
     let plate96wData = {};
     let plate384wData = {};
     let lastState = null; // for one-level undo
-    let isMetadataOverlayMode = false; // Track whether we're showing the metadata overlay
+    let currentVisualizationLayer = "metadata_1"; // Track which metadata layer we're visualizing
 
     // Global variable to control well advancement order.
     let advanceOrder = "column";
@@ -861,11 +1090,9 @@
     }
     updateLayerDropdowns();
     
-    // Add change event to layer dropdown to update visualization if active
+    // Add change event to layer dropdown to update visualization
     document.getElementById("layerDropdown").addEventListener("change", function() {
-      if (isMetadataOverlayMode) {
-        applyMetadataVisualization();
-      }
+      applyMetadataVisualization();
     });
 
     /***** Undo Functions *****/
@@ -886,6 +1113,9 @@
       updateAllDisplayedCells();
       document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
       updateRatCache();
+      
+      // Update visualization after undo
+      applyMetadataVisualization();
     }
 
     /***** Initialization Functions for Plates *****/
@@ -1003,18 +1233,19 @@
     /***** Display Update Functions *****/
     function updateCellDisplay96(cell, plateId, wellId) {
       let data = plate96wData[plateId][wellId];
-      let html = `<div class="well-id">${wellId}</div>`;
+      let html = `<div class="well-id">${wellId}</div><div class="well-content">`;
       for (let i = 1; i <= 9; i++) {
         let key = "metadata_" + i;
         if (data[key]) {
           html += `<div class="metadata">${i}: ${data[key]}</div>`;
         }
       }
+      html += '</div>';
       cell.innerHTML = html;
     }
     function updateCellDisplay384(cell, plateId, wellId) {
       let data = plate384wData[plateId][wellId];
-      let html = `<div class="well-id">${wellId}</div>`;
+      let html = `<div class="well-id">${wellId}</div><div class="well-content">`;
       for (let i = 1; i <= 9; i++) {
         let key = "metadata_" + i;
         if (data[key]) {
@@ -1024,6 +1255,7 @@
       if (data.Src_Plate_96w || data.Src_Well_96w) {
         html += `<div class="metadata">Map: ${data.Src_Plate_96w} ${data.Src_Well_96w}</div>`;
       }
+      html += '</div>';
       cell.innerHTML = html;
     }
     function updateAllDisplayedCells() {
@@ -1036,6 +1268,9 @@
           updateCellDisplay384(cell, plateId, wellId);
         }
       });
+      
+      // Equalize dimensions after updating cells
+      setTimeout(equalizeTableDimensions, 100);
     }
 
     /***** Selection and Visualization Handlers *****/
@@ -1045,20 +1280,6 @@
     
     function clearAllSelections() {
       document.querySelectorAll("td.well.selected, th.selected").forEach(el => el.classList.remove("selected"));
-    }
-    
-    // Exit metadata overlay mode and return to normal selection mode
-    function exitMetadataOverlayMode() {
-      if (isMetadataOverlayMode) {
-        isMetadataOverlayMode = false;
-        document.querySelectorAll("td.well").forEach(cell => {
-          cell.style.backgroundColor = "";
-        });
-        
-        // Update the button text
-        const deselectAllButton = document.getElementById("deselectAllButton");
-        deselectAllButton.innerHTML = '<i class="fa fa-eye"></i> Visualize';
-      }
     }
     
     // Generate a color from a gradient based on index and total
@@ -1093,11 +1314,9 @@
     
     // Apply metadata visualization overlay
     function applyMetadataVisualization() {
-      clearAllSelections();
-      isMetadataOverlayMode = true;
-      
       // Get the current metadata layer
       const layer = document.getElementById("layerDropdown").value;
+      currentVisualizationLayer = layer;
       
       // Collect all distinct non-empty values for this layer across visible plates
       const distinctValues = new Set();
@@ -1171,10 +1390,6 @@
           }
         }
       });
-      
-      // Update the button text
-      const deselectAllButton = document.getElementById("deselectAllButton");
-      deselectAllButton.innerHTML = '<i class="fa fa-th"></i> Hide Viz';
     }
 
     function addSelectionHandlers(table) {
@@ -1184,12 +1399,11 @@
       let startWasSelected = false;
       let lastHoveredCell = null;
       
-      // Add handler to exit metadata overlay mode on well clicks
+      // Add handler for well clicks
       table.querySelectorAll("td.well, th").forEach(cell => {
         cell.addEventListener("mousedown", function(event) {
-          if (isMetadataOverlayMode) {
-            exitMetadataOverlayMode();
-            // Don't proceed with selection on this click - requires a new click
+          // Only check for right click
+          if (event.button === 2) {
             event.preventDefault();
             event.stopPropagation();
             return false;
@@ -1448,10 +1662,6 @@
     /***** The Memory Usage (formerly Rat Cache) *****/
     function updateRatCache() {
       let bytes = JSON.stringify({ plate96wData, plate384wData }).length;
-      let display;
-      if (bytes < 1024 * 1024) { display = (bytes / 1024).toFixed(2) + " KB"; }
-      else { display = (bytes / (1024 * 1024)).toFixed(2) + " MB"; }
-      document.getElementById("memoryUsage").textContent = "(" + display + ")";
       if (bytes > 200 * 1024 * 1024) {
         alert("Squeak alert! You're stuffing too much in the nest! Trim down or risk a crash, you data-gobbling vermin!");
       }
@@ -1498,6 +1708,12 @@
       
       // Update mapping dropdowns
       updateMappingDropdowns();
+      
+      // Update visualization after plate visibility changes
+      applyMetadataVisualization();
+      
+      // Equalize dimensions after a short delay to ensure DOM is updated
+      setTimeout(equalizeTableDimensions, 100);
     }
 
     /***** Button Handlers *****/
@@ -1523,21 +1739,40 @@
     
     // Assign Values (with updated whitespace/comma–separated support and auto–advance)
     document.getElementById("assignButton").addEventListener("click", function() {
-      let layer = document.getElementById("layerDropdown").value;
-      let rawValue = document.getElementById("metadataValue").value;
-      let isQuoted = rawValue.startsWith('"') && rawValue.endsWith('"') && rawValue.length >= 2;
-      let value;
-      if (isQuoted) {
-        value = rawValue.substring(1, rawValue.length - 1);
-      } else {
-        value = rawValue.trim();
-      }
-      if (!value) { alert("Please enter a metadata value."); return; }
       let selected = document.querySelectorAll("td.well.selected");
-      if (selected.length === 0) { alert("No wells selected. Please make a selection."); return; }
-      let parsedList;
-      if (!isQuoted) {
-        parsedList = value.split(/[,\s]+/).filter(s => s !== "");
+      if (selected.length === 0) {
+        alert("No wells selected.");
+        return;
+      }
+      let layer = document.getElementById("layerDropdown").value;
+      let value = document.getElementById("metadataValue").value.trim();
+      let parsedList = [];
+      let advanceOrder = document.getElementById('advanceOrderCheckbox') && document.getElementById('advanceOrderCheckbox').checked ? "row" : "column";
+      
+      // Support for Shift key to toggle row-major ordering
+      if (window.event && window.event.shiftKey) {
+        advanceOrder = "row";
+      }
+      
+      // Check if this is a comma or space-separated list
+      if (value.includes(',') || value.includes(' ')) {
+        // Handle quoted values with commas/spaces inside quotes
+        let inQuote = false;
+        let currentValue = '';
+        for (let i = 0; i < value.length; i++) {
+          let char = value[i];
+          if (char === '"' && (i === 0 || value[i-1] !== '\\')) {
+            inQuote = !inQuote;
+            continue;
+          }
+          if ((char === ',' || char === ' ') && !inQuote) {
+            if (currentValue.trim()) parsedList.push(currentValue.trim());
+            currentValue = '';
+            continue;
+          }
+          currentValue += char;
+        }
+        if (currentValue.trim()) parsedList.push(currentValue.trim());
       } else {
         parsedList = [value];
       }
@@ -1585,6 +1820,13 @@
         document.getElementById("metadataValue").select();
         advanceOrder = "column";
         updateRatCache();
+        
+        // Update visualization after metadata changes
+        applyMetadataVisualization();
+        
+        // Equalize table dimensions after value assignment
+        setTimeout(equalizeTableDimensions, 50);
+        
         return;
       }
       let singleSelection = (selected.length === 1);
@@ -1618,6 +1860,12 @@
       document.getElementById("metadataValue").select();
       advanceOrder = "column";
       updateRatCache();
+      
+      // Update visualization after metadata changes
+      applyMetadataVisualization();
+      
+      // Equalize table dimensions after value assignment
+      setTimeout(equalizeTableDimensions, 50);
     });
     
     // Clear button: Clear only the metadata value for the currently selected layer for selected wells.
@@ -1642,6 +1890,12 @@
       });
       clearAllSelections();
       updateRatCache();
+      
+      // Update visualization after metadata changes
+      applyMetadataVisualization();
+      
+      // Equalize table dimensions after clearing values
+      setTimeout(equalizeTableDimensions, 50);
     });
     
     // Empty 🤮 button: Clear all metadata values across all metadata layers for selected wells.
@@ -1672,6 +1926,12 @@
         });
         clearAllSelections();
         updateRatCache();
+        
+        // Update visualization after metadata changes
+        applyMetadataVisualization();
+        
+        // Equalize table dimensions after clearing values
+        setTimeout(equalizeTableDimensions, 50);
       }
     });
     
@@ -1876,6 +2136,12 @@
       }
       document.querySelectorAll("th.selected").forEach(el => el.classList.remove("selected"));
       updateRatCache();
+      
+      // Update visualization after mapping
+      applyMetadataVisualization();
+      
+      // Equalize table dimensions after mapping operation
+      setTimeout(equalizeTableDimensions, 50);
     });
     
     /***** Checkbox Handlers for Showing/Hiding Plates *****/
@@ -1985,15 +2251,6 @@
       }
     });
     
-    /***** Deselect All / Visualize Button Handler *****/
-    document.getElementById("deselectAllButton").addEventListener("click", function() {
-      if (isMetadataOverlayMode) {
-        exitMetadataOverlayMode();
-      } else {
-        applyMetadataVisualization();
-      }
-    });
-    
     /***** Undo Button Handler *****/
     document.getElementById("undoButton").addEventListener("click", function() {
       undoLastAction();
@@ -2007,6 +2264,20 @@
       if ((isMac ? e.metaKey : e.ctrlKey) && e.key === '/') {
         e.preventDefault();
         toggleShortcutsPopup();
+        return;
+      }
+      
+      // Save data with Ctrl/Cmd + S
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.key === 's' && !e.shiftKey) {
+        e.preventDefault();
+        saveAllData();
+        return;
+      }
+      
+      // Load data with Ctrl/Cmd + O
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.key === 'o' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('fileInput').click();
         return;
       }
       
@@ -2123,6 +2394,303 @@
       
       // For older browsers
       return confirmationMessage;
+    });
+    
+    /***** Save & Load Functionality *****/
+    function saveAllData() {
+      // Create a data object with everything that needs to be saved
+      const dataToSave = {
+        version: "0.2",
+        timestamp: new Date().toISOString(),
+        layerNames: layerNames,
+        plate96wData: plate96wData,
+        plate384wData: plate384wData
+      };
+      
+      // Convert to a JSON string
+      const jsonString = JSON.stringify(dataToSave);
+      
+      // Create a downloadable blob
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = "ratmap_data.json";
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      // Show success message
+      alert("Data successfully saved to ratmap_data.json");
+    }
+    
+    function loadData(file) {
+      // Create a file reader to read the uploaded file
+      const reader = new FileReader();
+      
+      reader.onload = function(event) {
+        try {
+          // Parse the JSON string
+          const data = JSON.parse(event.target.result);
+          
+          // Validate the data structure
+          if (!validateImportData(data)) {
+            alert("Invalid data format. Please ensure you're loading a valid RatMap data file.");
+            return;
+          }
+          
+          // Back up current state in case something goes wrong
+          const backupLayerNames = [...layerNames];
+          const backupPlate96wData = JSON.parse(JSON.stringify(plate96wData));
+          const backupPlate384wData = JSON.parse(JSON.stringify(plate384wData));
+          
+          try {
+            // Replace the application data
+            layerNames = data.layerNames;
+            plate96wData = data.plate96wData;
+            plate384wData = data.plate384wData;
+            
+            // Update UI elements
+            updateLayerDropdowns();
+            
+            // Check all plate checkboxes to make plates visible
+            document.querySelectorAll('.plate96wCheckbox').forEach(cb => {
+              if (!cb.checked) {
+                cb.checked = true;
+                cb.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            });
+            
+            document.querySelectorAll('.plate384wCheckbox').forEach(cb => {
+              if (!cb.checked) {
+                cb.checked = true;
+                cb.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            });
+            
+            // Update the display
+            updateAllDisplayedCells();
+            updateRatCache();
+            
+            // Equalize plate dimensions after loading data
+            setTimeout(equalizeTableDimensions, 200);
+            
+            // Show success message
+            alert("Data successfully loaded!");
+          } catch (e) {
+            // Restore backup if something went wrong
+            console.error("Error applying imported data:", e);
+            layerNames = backupLayerNames;
+            plate96wData = backupPlate96wData;
+            plate384wData = backupPlate384wData;
+            alert("Error applying imported data. Your previous data has been restored.");
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+          alert("Failed to parse the file. Please ensure it's a valid JSON file.");
+        }
+      };
+      
+      reader.onerror = function() {
+        alert("Error reading the file. Please try again.");
+      };
+      
+      // Read the file as text
+      reader.readAsText(file);
+    }
+    
+    function validateImportData(data) {
+      // Check for required properties
+      if (!data.layerNames || !data.plate96wData || !data.plate384wData) {
+        console.error("Missing required properties in import data");
+        return false;
+      }
+      
+      // Validate layerNames
+      if (!Array.isArray(data.layerNames) || data.layerNames.length !== 9) {
+        console.error("layerNames must be an array of 9 items");
+        return false;
+      }
+      
+      // Validate plate data structure
+      try {
+        // Check the 96-well plate data structure
+        for (const plateId in data.plate96wData) {
+          const plate = data.plate96wData[plateId];
+          // Check a few wells to validate structure
+          const wells = rows96.map(r => r + cols96[0]); // Get a few well IDs
+          for (const wellId of wells) {
+            if (!plate[wellId]) continue; // Skip if well doesn't exist
+            
+            for (let i = 1; i <= 9; i++) {
+              if (typeof plate[wellId][`metadata_${i}`] !== 'string') {
+                throw new Error(`Invalid metadata in plate ${plateId} well ${wellId}`);
+              }
+            }
+          }
+        }
+        
+        // Check the 384-well plate data structure
+        for (const plateId in data.plate384wData) {
+          const plate = data.plate384wData[plateId];
+          // Check a few wells to validate structure
+          const wells = rows384.map(r => r + cols384[0]); // Get a few well IDs
+          for (const wellId of wells) {
+            if (!plate[wellId]) continue; // Skip if well doesn't exist
+            
+            for (let i = 1; i <= 9; i++) {
+              if (typeof plate[wellId][`metadata_${i}`] !== 'string') {
+                throw new Error(`Invalid metadata in plate ${plateId} well ${wellId}`);
+              }
+            }
+            
+            if (typeof plate[wellId].Src_Plate_96w !== 'string' ||
+                typeof plate[wellId].Src_Well_96w !== 'string') {
+              throw new Error(`Invalid mapping data in plate ${plateId} well ${wellId}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Validation error:", error);
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Event listeners for save and load buttons
+    document.getElementById('saveDataButton').addEventListener('click', function() {
+      saveAllData();
+    });
+    
+    document.getElementById('loadDataButton').addEventListener('click', function() {
+      document.getElementById('fileInput').click();
+    });
+    
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      if (event.target.files.length > 0) {
+        loadData(event.target.files[0]);
+        // Reset the file input so the same file can be loaded again
+        event.target.value = '';
+      }
+    });
+
+    /***** Ensure Uniform Plate Dimensions *****/
+    function equalizeTableDimensions() {
+      // Separate tables by type
+      const tables96w = document.querySelectorAll('.plateTable[data-plate$="96w"]');
+      const tables384w = document.querySelectorAll('.plateTable[data-plate$="384w"]');
+      
+      // Equalize 96-well plates if there are multiple
+      if (tables96w.length > 1) {
+        equalizeTableSet(tables96w);
+      }
+      
+      // Equalize 384-well plates if there are multiple
+      if (tables384w.length > 1) {
+        equalizeTableSet(tables384w);
+      }
+    }
+    
+    function equalizeTableSet(tables) {
+      // Get all rows and all columns
+      const allRows = [];
+      const allCols = [];
+      const allCells = [];
+      
+      // Collect all rows, columns and cells
+      tables.forEach(table => {
+        // Get all rows (excluding header row)
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        allRows.push(...rows);
+        
+        // Get all columns (excluding first column which is row header)
+        const firstRow = table.querySelector('thead tr');
+        if (firstRow) {
+          const cols = Array.from(firstRow.querySelectorAll('th')).slice(1); // Skip first th (corner cell)
+          allCols.push(...cols);
+        }
+        
+        // Get all data cells
+        const cells = Array.from(table.querySelectorAll('td'));
+        allCells.push(...cells);
+      });
+      
+      // Find maximum row height
+      let maxRowHeight = 0;
+      allRows.forEach(row => {
+        const height = row.getBoundingClientRect().height;
+        if (height > maxRowHeight) {
+          maxRowHeight = height;
+        }
+      });
+      
+      // Find maximum column width
+      let maxColWidth = 0;
+      allCols.forEach(col => {
+        const width = col.getBoundingClientRect().width;
+        if (width > maxColWidth) {
+          maxColWidth = width;
+        }
+      });
+      
+      // Find maximum cell height and width
+      let maxCellHeight = 0;
+      let maxCellWidth = 0;
+      allCells.forEach(cell => {
+        const rect = cell.getBoundingClientRect();
+        if (rect.height > maxCellHeight) {
+          maxCellHeight = rect.height;
+        }
+        if (rect.width > maxCellWidth) {
+          maxCellWidth = rect.width;
+        }
+      });
+      
+      // Apply maximum dimensions to all tables
+      tables.forEach(table => {
+        // Set fixed widths on header cells (except first one)
+        const headerCells = Array.from(table.querySelectorAll('thead th')).slice(1);
+        headerCells.forEach(cell => {
+          cell.style.width = `${maxColWidth}px`;
+          cell.style.minWidth = `${maxColWidth}px`;
+        });
+        
+        // Set fixed heights on all rows
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        rows.forEach(row => {
+          row.style.height = `${maxRowHeight}px`;
+        });
+        
+        // Set fixed dimensions on all data cells
+        const cells = Array.from(table.querySelectorAll('td'));
+        cells.forEach(cell => {
+          cell.style.width = `${maxCellWidth}px`;
+          cell.style.height = `${maxCellHeight}px`;
+          cell.style.minWidth = `${maxCellWidth}px`;
+          cell.style.minHeight = `${maxCellHeight}px`;
+        });
+        
+        // Ensure the table has a consistent total width
+        table.style.width = '100%';
+        table.style.tableLayout = 'fixed';
+      });
+    }
+
+    // Add initial call to equalize dimensions on window load
+    window.addEventListener('load', function() {
+      setTimeout(equalizeTableDimensions, 500);
+    });
+    
+    // Add equalizeTableDimensions call when window is resized
+    window.addEventListener('resize', function() {
+      clearTimeout(window.resizeTimer);
+      window.resizeTimer = setTimeout(equalizeTableDimensions, 250);
     });
   </script>
 </body>
