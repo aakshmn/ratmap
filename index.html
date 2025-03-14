@@ -285,14 +285,14 @@
       width: 100%;
     }
     
-    /* Media query for wide screens - show 96w and 384w side by side */
+    /* Media query for wide screens - show 96w and 384w side by side only when both are visible */
     @media (min-width: 1600px) {
-      .plates-container {
+      .plates-container.show-both {
         flex-direction: row;
         gap: 1rem;
       }
       
-      .plate-section {
+      .plates-container.show-both .plate-section {
         flex: 1;
         max-width: 50%;
         width: 50%;
@@ -1692,6 +1692,14 @@
       const section96w = document.getElementById('section96w');
       const section384w = document.getElementById('section384w');
       
+      // Control split view layout based on which plate types are visible
+      const platesContainer = document.querySelector('.plates-container');
+      if (has96w && has384w) {
+        platesContainer.classList.add('show-both');
+      } else {
+        platesContainer.classList.remove('show-both');
+      }
+      
       if (has96w) {
         section96w.classList.add('active');
         // Update checkbox labels
@@ -2651,97 +2659,149 @@
       // Equalize 96-well plates if there are multiple
       if (tables96w.length > 1) {
         equalizeTableSet(tables96w);
+      } else if (tables96w.length === 1) {
+        // If only one plate is visible, reset its fixed dimensions
+        resetTableDimensions(tables96w[0]);
       }
       
       // Equalize 384-well plates if there are multiple
       if (tables384w.length > 1) {
         equalizeTableSet(tables384w);
+      } else if (tables384w.length === 1) {
+        // If only one plate is visible, reset its fixed dimensions
+        resetTableDimensions(tables384w[0]);
       }
     }
     
+    // Helper function to reset a single table's dimensions
+    function resetTableDimensions(table) {
+      // Reset row heights
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      rows.forEach(row => {
+        row.style.height = '';
+      });
+      
+      // Reset cell heights and widths
+      const cells = Array.from(table.querySelectorAll('td'));
+      cells.forEach(cell => {
+        cell.style.height = '';
+        cell.style.minHeight = '';
+        // Don't reset width to maintain consistent column widths
+      });
+      
+      // We're not resetting header widths to maintain consistent column widths
+      // even with a single plate
+    }
+    
     function equalizeTableSet(tables) {
-      // Get all rows and all columns
-      const allRows = [];
-      const allCols = [];
-      const allCells = [];
-      
-      // Collect all rows, columns and cells
+      // First reset all inline heights to allow cells to return to natural size
       tables.forEach(table => {
-        // Get all rows (excluding header row)
-        const rows = Array.from(table.querySelectorAll('tbody tr'));
-        allRows.push(...rows);
-        
-        // Get all columns (excluding first column which is row header)
-        const firstRow = table.querySelector('thead tr');
-        if (firstRow) {
-          const cols = Array.from(firstRow.querySelectorAll('th')).slice(1); // Skip first th (corner cell)
-          allCols.push(...cols);
-        }
-        
-        // Get all data cells
-        const cells = Array.from(table.querySelectorAll('td'));
-        allCells.push(...cells);
-      });
-      
-      // Find maximum row height
-      let maxRowHeight = 0;
-      allRows.forEach(row => {
-        const height = row.getBoundingClientRect().height;
-        if (height > maxRowHeight) {
-          maxRowHeight = height;
-        }
-      });
-      
-      // Find maximum column width
-      let maxColWidth = 0;
-      allCols.forEach(col => {
-        const width = col.getBoundingClientRect().width;
-        if (width > maxColWidth) {
-          maxColWidth = width;
-        }
-      });
-      
-      // Find maximum cell height and width
-      let maxCellHeight = 0;
-      let maxCellWidth = 0;
-      allCells.forEach(cell => {
-        const rect = cell.getBoundingClientRect();
-        if (rect.height > maxCellHeight) {
-          maxCellHeight = rect.height;
-        }
-        if (rect.width > maxCellWidth) {
-          maxCellWidth = rect.width;
-        }
-      });
-      
-      // Apply maximum dimensions to all tables
-      tables.forEach(table => {
-        // Set fixed widths on header cells (except first one)
-        const headerCells = Array.from(table.querySelectorAll('thead th')).slice(1);
-        headerCells.forEach(cell => {
-          cell.style.width = `${maxColWidth}px`;
-          cell.style.minWidth = `${maxColWidth}px`;
-        });
-        
-        // Set fixed heights on all rows
+        // Reset row heights
         const rows = Array.from(table.querySelectorAll('tbody tr'));
         rows.forEach(row => {
-          row.style.height = `${maxRowHeight}px`;
+          row.style.height = '';
         });
         
-        // Set fixed dimensions on all data cells
+        // Reset cell heights
         const cells = Array.from(table.querySelectorAll('td'));
         cells.forEach(cell => {
-          cell.style.width = `${maxCellWidth}px`;
-          cell.style.height = `${maxCellHeight}px`;
-          cell.style.minWidth = `${maxCellWidth}px`;
-          cell.style.minHeight = `${maxCellHeight}px`;
+          cell.style.height = '';
+          cell.style.minHeight = '';
         });
         
-        // Ensure the table has a consistent total width
-        table.style.width = '100%';
-        table.style.tableLayout = 'fixed';
+        // Reset header cell widths
+        const headerCells = Array.from(table.querySelectorAll('thead th')).slice(1);
+        headerCells.forEach(cell => {
+          cell.style.width = '';
+          cell.style.minWidth = '';
+        });
       });
+      
+      // Small delay to allow the browser to recalculate natural sizes
+      setTimeout(() => {
+        // Get all rows and all columns
+        const allRows = [];
+        const allCols = [];
+        const allCells = [];
+        
+        // Collect all rows, columns and cells
+        tables.forEach(table => {
+          // Get all rows (excluding header row)
+          const rows = Array.from(table.querySelectorAll('tbody tr'));
+          allRows.push(...rows);
+          
+          // Get all columns (excluding first column which is row header)
+          const firstRow = table.querySelector('thead tr');
+          if (firstRow) {
+            const cols = Array.from(firstRow.querySelectorAll('th')).slice(1); // Skip first th (corner cell)
+            allCols.push(...cols);
+          }
+          
+          // Get all data cells
+          const cells = Array.from(table.querySelectorAll('td'));
+          allCells.push(...cells);
+        });
+        
+        // Find maximum row height
+        let maxRowHeight = 0;
+        allRows.forEach(row => {
+          const height = row.getBoundingClientRect().height;
+          if (height > maxRowHeight) {
+            maxRowHeight = height;
+          }
+        });
+        
+        // Find maximum column width
+        let maxColWidth = 0;
+        allCols.forEach(col => {
+          const width = col.getBoundingClientRect().width;
+          if (width > maxColWidth) {
+            maxColWidth = width;
+          }
+        });
+        
+        // Find maximum cell height and width
+        let maxCellHeight = 0;
+        let maxCellWidth = 0;
+        allCells.forEach(cell => {
+          const rect = cell.getBoundingClientRect();
+          if (rect.height > maxCellHeight) {
+            maxCellHeight = rect.height;
+          }
+          if (rect.width > maxCellWidth) {
+            maxCellWidth = rect.width;
+          }
+        });
+        
+        // Apply maximum dimensions to all tables
+        tables.forEach(table => {
+          // Set fixed widths on header cells (except first one)
+          const headerCells = Array.from(table.querySelectorAll('thead th')).slice(1);
+          headerCells.forEach(cell => {
+            cell.style.width = `${maxColWidth}px`;
+            cell.style.minWidth = `${maxColWidth}px`;
+          });
+          
+          // Set fixed heights on all rows
+          const rows = Array.from(table.querySelectorAll('tbody tr'));
+          rows.forEach(row => {
+            row.style.height = `${maxRowHeight}px`;
+          });
+          
+          // Set fixed dimensions on all data cells
+          const cells = Array.from(table.querySelectorAll('td'));
+          cells.forEach(cell => {
+            cell.style.width = `${maxCellWidth}px`;
+            cell.style.height = `${maxCellHeight}px`;
+            cell.style.minWidth = `${maxCellWidth}px`;
+            cell.style.minHeight = `${maxCellHeight}px`;
+          });
+          
+          // Ensure the table has a consistent total width
+          table.style.width = '100%';
+          table.style.tableLayout = 'fixed';
+        });
+      }, 50); // Small delay to allow browser to recalculate natural sizes
     }
 
     // Add initial call to equalize dimensions on window load
