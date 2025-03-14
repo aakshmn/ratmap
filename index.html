@@ -1801,7 +1801,7 @@
     });
     
     // Assign Values (with updated whitespace/comma–separated support and auto–advance)
-    document.getElementById("assignButton").addEventListener("click", function() {
+    document.getElementById("assignButton").addEventListener("click", function(event) {
       let selected = document.querySelectorAll("td.well.selected");
       if (selected.length === 0) {
         alert("No wells selected.");
@@ -1810,10 +1810,15 @@
       let layer = document.getElementById("layerDropdown").value;
       let value = document.getElementById("metadataValue").value.trim();
       let parsedList = [];
-      let advanceOrder = document.getElementById('advanceOrderCheckbox') && document.getElementById('advanceOrderCheckbox').checked ? "row" : "column";
+      
+      // Get default order from checkbox if present, but don't create a local variable
+      if (document.getElementById('advanceOrderCheckbox') && document.getElementById('advanceOrderCheckbox').checked) {
+        advanceOrder = "row";
+      }
       
       // Support for Shift key to toggle row-major ordering
-      if (window.event && window.event.shiftKey) {
+      // Use event passed to the handler or window.event as fallback
+      if ((event && event.shiftKey) || (window.event && window.event.shiftKey)) {
         advanceOrder = "row";
       }
       
@@ -1881,7 +1886,8 @@
           } else { clearAllSelections(); }
         } else { clearAllSelections(); }
         document.getElementById("metadataValue").select();
-        advanceOrder = "column";
+        // Don't reset advanceOrder here, but schedule a delayed reset
+        resetAdvanceOrderWithDelay();
         updateRatCache();
         
         // Update visualization after metadata changes
@@ -1921,7 +1927,8 @@
         } else { clearAllSelections(); }
       } else { clearAllSelections(); }
       document.getElementById("metadataValue").select();
-      advanceOrder = "column";
+      // Don't reset advanceOrder here, but schedule a delayed reset
+      resetAdvanceOrderWithDelay();
       updateRatCache();
       
       // Update visualization after metadata changes
@@ -2314,8 +2321,15 @@
           // Shift+Alt+Enter (or Shift+Option+Enter on Mac) performs layer rename.
           performLayerRename();
         } else {
+          // Set advance order based on Shift key, but don't reset it later
           advanceOrder = event.shiftKey ? "row" : "column";
-          document.getElementById("assignButton").click();
+          // Pass the event explicitly to ensure the shift key state is captured
+          document.getElementById("assignButton").dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            shiftKey: event.shiftKey
+          }));
         }
       }
     });
@@ -2847,6 +2861,13 @@
       clearTimeout(window.resizeTimer);
       window.resizeTimer = setTimeout(equalizeTableDimensions, 250);
     });
+
+    // Function to reset advanceOrder to default after a short delay
+    function resetAdvanceOrderWithDelay() {
+      setTimeout(() => {
+        advanceOrder = "column";
+      }, 2000); // Reset after 2 seconds of inactivity
+    }
   </script>
 </body>
 </html>
