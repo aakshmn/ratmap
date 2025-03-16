@@ -140,13 +140,16 @@ The app features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view). A
 ### General Controls
 | Shortcut | Action |
 |---------|--------|
-| Ctrl/⌘ + Shift + L or M | Focus and select the metadata value input |
-| Ctrl/⌘ + Shift + S | Focus the Source dropdown |
-| Ctrl/⌘ + Shift + D | Focus the Destination dropdown |
-| Ctrl/⌘ + Shift + O | Focus the 96-well plates Export button |
-| Ctrl/⌘ + Shift + P | Focus the 384-well plates Export button |
+| Ctrl/⌘ + S | Save data |
+| Ctrl/⌘ + O | Load data |
 | Ctrl/⌘ + / | Toggle shortcuts help popup |
 | Esc | Close shortcuts help popup |
+| Ctrl/⌘ + Esc | Deselect all wells |
+| Ctrl/⌘ + Shift + L/M | Focus metadata input |
+| Ctrl/⌘ + Shift + S | Focus Source dropdown |
+| Ctrl/⌘ + Shift + D | Focus Destination dropdown |
+| Ctrl/⌘ + Shift + O | Focus 96-well plates Export button |
+| Ctrl/⌘ + Shift + P | Focus 384-well plates Export button |
 
 ### Plate Toggling
 | Shortcut | Action |
@@ -158,6 +161,7 @@ The app features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view). A
 ### Metadata Assignment
 | Shortcut | Action |
 |---------|--------|
+| Ctrl/⌘ + 1-9 | Jump to Metadata Layer 1-9 |
 | Enter | Assign value to selected well(s) in column-major order |
 | Shift + Enter | Assign value to selected well(s) in row-major order |
 | Shift + Alt/Option + Enter | Rename the current layer |
