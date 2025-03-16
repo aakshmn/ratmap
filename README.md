@@ -123,10 +123,13 @@ The interface in v0.3 has been optimized for efficiency:
 - **Header Click:** Toggle selection of an entire row, column, or the full plate by clicking the corresponding header
 
 ### Visualization Mode
-- **Toggle Visualization:** Click the "Visualize" button to enter a color-coded view of metadata values
+- **Automatic Visualization:** Wells are automatically color-coded based on their metadata values in the currently selected layer
 - **Color Coding:** Each unique value in the selected metadata layer is assigned a color from a gradient
-- **Layer Selection:** Change the visualized layer using the metadata layer dropdown
-- **Exiting Visualization Mode:** Click the "Hide Viz" button or click any well to return to normal selection mode
+- **Layer Selection:** 
+  - Change the visualized layer using the metadata layer dropdown
+  - Use keyboard shortcuts (Ctrl/⌘ + [number]) to quickly switch between layers for rapid assessment of different metadata parameters
+  - Visual transitions between layers are smooth, allowing for quick comparison of different experimental conditions
+- **Empty Wells:** Wells without assigned values in the current layer appear without color coding
 
 ---
 
@@ -192,9 +195,10 @@ The app features a built-in shortcuts help popup (Press Ctrl/⌘ + / to view). A
   - Enclose values in double quotes (") to include commas or spaces within a single value.
   - Example: `"PBS, 1X"` will be treated as a single value.
 - **Visualization Usage:**
-  - Use visualization mode to quickly identify patterns or errors in your plate layout.
-  - Toggle between different metadata layers while in visualization mode to compare different parameters.
-  - The color-coding helps identify missing values or outliers in your data.
+  - The automatic color-coding helps quickly identify patterns or errors in your plate layout
+  - Use keyboard shortcuts to rapidly switch between metadata layers for comparing different parameters
+  - Color gradients make it easy to spot missing values or outliers in your data
+  - The immediate visual feedback helps verify correct metadata assignment
 - **Save Your Work:**
   - Use the Save button frequently to prevent data loss, especially during long mapping sessions.
   - Downloaded save files can be shared with colleagues for collaborative work.
