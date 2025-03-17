@@ -80,6 +80,35 @@ A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older
   - Save your current plate configuration and metadata for later use
   - Load previously saved data to continue your work
   - **Example Data:** Try loading this [example data file](https://github.com/aakshmn/ratmap/blob/main/ratmap_data_20250314.json) to see a pre-configured plate setup
+  - **Save Function Details:**
+    - The Save function creates a JSON file containing your current plate configuration and metadata
+    - **JSON File Structure:**
+      - Includes `version` (currently "0.3"), `timestamp` (ISO format), `layerNames`, `plate96wData`, and `plate384wData` properties
+      - Timestamp captures the exact moment of saving for reference
+      - Default filename is "ratmap_data.json"
+      - **Filename Flexibility:** The default filename can be changed by the user after downloading without affecting functionality; the system validates file content, not the filename, when loading
+    - **Activation Methods:**
+      - Click the Save button in the top section
+      - Use keyboard shortcut Ctrl/⌘ + S
+    - **Usage Tips:**
+      - Save files can be shared with colleagues for collaborative work
+      - Files are compatible across browsers that support modern JavaScript
+      - Regular saving is recommended to prevent data loss during long mapping sessions
+  - **Load Function Details:**
+    - The Load function expects a JSON file created by the Save function in RatMap
+    - **Expected JSON Format:**
+      - The file must include `version`, `timestamp`, `layerNames`, `plate96wData`, and `plate384wData` properties
+      - `layerNames` must be an array of 9 strings representing metadata layer names
+      - `plate96wData` and `plate384wData` contain structured objects with well metadata
+    - **Validation Process:**
+      - The Load function validates all file properties and data structures
+      - It checks metadata values and mapping data integrity
+      - If validation fails, an error message will be displayed
+    - **Loading Behavior:**
+      - When data is successfully loaded, all plates are automatically toggled on, ensuring visibility of all loaded metadata
+      - This prevents users from missing data in hidden plates
+      - After loading, we recommend quickly switching through all metadata layers (using Ctrl/⌘ + [1-9] shortcuts) to review all loaded data
+      - A backup of your current data is saved before loading and will be restored if any errors occur
 - **Undo Functionality:**  
   - One-level undo to revert accidental changes using the Undo button
 - **Keyboard Shortcuts Help:**
