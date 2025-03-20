@@ -29,9 +29,9 @@ RatMap is a web-based tool designed to help you map and manage your 96-well and 
 - **Modern Web Browser:** RatMap runs best on modern browsers that comfortably handle up to 200MB of data.
 
 ### Video Walkthrough
-A walkthrough and demo of RatMap (v0.1) is available. Even though it is an older version, the functionality and principles still hold. There are chapters so that you can jump to topics of interest.
+A walkthrough and demo of RatMap (v0.3) is available. It provides basic overview and walkthrough of features and functionality with a simple demonstration.
 
-- **Watch the demo video:** [RatMap Walkthrough (v0.1)](https://www.google.com/)
+- **Watch the demo video:** [RatMap Walkthrough (v0.3)](https://youtu.be/atpPPzondhI)
 
 ### Quick Start Guide
 1. **Open the App:** Go to [RatMap](https://aakshmn.github.io/ratmap/)
